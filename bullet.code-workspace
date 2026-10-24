@@ -69,6 +69,30 @@
           "cwd": "${workspaceFolder:flight_lens}"
         },
         "problemMatcher": []
+      },
+      {
+        "label": "Bullet: Run all (custom MCAP directory)",
+        "type": "process",
+        "command": "bash",
+        "args": [
+          "-c",
+          "set -e\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py --mcap-output-dir ~/workspaces/bullet/recordings\n"
+        ],
+        "options": {
+          "cwd": "${workspaceFolder:bullet_render}"
+        },
+        "problemMatcher": [
+          "$gcc"
+        ],
+        "presentation": {
+          "reveal": "always",
+          "panel": "dedicated",
+          "clear": true
+        },
+        "runOptions": {
+          "instanceLimit": 1
+        },
+        "detail": "Build and launch the flight services; save MCAP files to ~/workspaces/bullet/recordings. Wait for Mission READY, then press Start."
       }
     ]
   }

@@ -8,3 +8,6 @@
 /flight_lens/
 /los_tracking/
 /mcap_bagger/
+
+# Generated flight recordings.
+/recordings/
