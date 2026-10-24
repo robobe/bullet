@@ -1,0 +1,10 @@
+[tool.uv.workspace]
+members = [
+    "bullet_app",
+    "bullet_drone",
+    "bullet_msgs",
+    "bullet_render",
+    "los_tracking",
+    "mcap_bagger",
+    "flight_lens",
+]

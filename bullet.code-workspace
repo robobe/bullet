@@ -1,0 +1,75 @@
+{
+  "folders": [
+    {
+      "path": "bullet_render"
+    },
+    {
+      "path": "mcap_bagger"
+    },
+    {
+      "path": "bullet_drone"
+    },
+    {
+      "name": "docs",
+      "path": "docs"
+    },
+    {
+      "path": "bullet_msgs"
+    },
+    {
+      "path": "los_tracking"
+    },
+    {
+      "path": "bullet_app"
+    },
+    {
+      "path": "flight_lens"
+    }
+  ],
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Bullet: Run all",
+        "type": "process",
+        "command": "bash",
+        "args": [
+          "-c",
+          "set -e\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py\n"
+        ],
+        "options": {
+          "cwd": "${workspaceFolder:bullet_render}"
+        },
+        "problemMatcher": [
+          "$gcc"
+        ],
+        "presentation": {
+          "reveal": "always",
+          "panel": "dedicated",
+          "clear": true
+        },
+        "runOptions": {
+          "instanceLimit": 1
+        },
+        "detail": "Build renderer and launch recorded flight services. One MCAP per flight, process logs per launch. Wait for Mission READY, then press Start."
+      },
+      {
+        "label": "FlightLens: Open",
+        "type": "process",
+        "command": "uv",
+        "args": [
+          "run",
+          "--locked",
+          "--all-packages",
+          "--all-extras",
+          "--all-groups",
+          "flight-lens"
+        ],
+        "options": {
+          "cwd": "${workspaceFolder:flight_lens}"
+        },
+        "problemMatcher": []
+      }
+    ]
+  }
+}

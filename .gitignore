@@ -1,0 +1,10 @@
+.venv/
+
+# Projects keep their independent Git histories.
+/bullet_app/
+/bullet_drone/
+/bullet_msgs/
+/bullet_render/
+/flight_lens/
+/los_tracking/
+/mcap_bagger/
