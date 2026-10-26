@@ -11,6 +11,7 @@ members = [
     "flight-lens",
     "los-tracking",
     "mcap-bagger",
+    "msp-link",
 ]
 
 [[package]]
@@ -30,6 +31,7 @@ dependencies = [
     { name = "bullet-msgs" },
     { name = "jsonschema" },
     { name = "los-tracking" },
+    { name = "msp-link" },
     { name = "numpy" },
     { name = "opencv-python" },
     { name = "pyzmq" },
@@ -46,6 +48,7 @@ requires-dist = [
     { name = "bullet-msgs", editable = "bullet_msgs" },
     { name = "jsonschema", specifier = ">=4,<5" },
     { name = "los-tracking", editable = "los_tracking" },
+    { name = "msp-link", editable = "msp_link" },
     { name = "numpy", specifier = ">=2,<3" },
     { name = "opencv-python", specifier = ">=4.10,<5" },
     { name = "pyzmq", specifier = ">=27,<28" },
@@ -455,6 +458,25 @@ provides-extras = ["demo"]
 dev = [{ name = "pytest", specifier = ">=8,<10" }]
 
 [[package]]
+name = "msp-link"
+version = "0.1.0"
+source = { editable = "msp_link" }
+dependencies = [
+    { name = "pyserial" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pyserial", specifier = ">=3.5,<4" }]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9,<10" }]
+
+[[package]]
 name = "numpy"
 version = "2.5.4"
 source = { registry = "https://pypi.org/simple" }
@@ -684,6 +706,15 @@ dependencies = [
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/32/36/4c242f81fdcbfa4fb62a5645f6af79191f4097a0577bd5460c24f19cc4ef/pyqtgraph-0.14.0-py3-none-any.whl", hash = "sha256:7abb7c3e17362add64f8711b474dffac5e7b0e9245abdf992e9a44119b7aa4f5", size = 1924755, upload-time = "2025-11-16T19:43:22.251Z" },
+]
+
+[[package]]
+name = "pyserial"
+version = "3.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/7d/ae3f0a63f41e4d2f6cb66a5b57197850f919f59e558159a4dd3a818f5082/pyserial-3.5.tar.gz", hash = "sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb", size = 159125, upload-time = "2020-11-23T03:59:15.045Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/bc/587a445451b253b285629263eb51c2d8e9bcea4fc97826266d186f96f558/pyserial-3.5-py2.py3-none-any.whl", hash = "sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0", size = 90585, upload-time = "2020-11-23T03:59:13.41Z" },
 ]
 
 [[package]]

@@ -23,6 +23,9 @@
       "path": "bullet_app"
     },
     {
+      "path": "msp_link"
+    },
+    {
       "path": "flight_lens"
     }
   ],
@@ -35,7 +38,7 @@
         "command": "bash",
         "args": [
           "-c",
-          "set -e\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py\n"
+          "set -e\npython3 tools/cleanup_flight.py\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py\n"
         ],
         "options": {
           "cwd": "${workspaceFolder:bullet_render}"
@@ -71,12 +74,26 @@
         "problemMatcher": []
       },
       {
+        "label": "Bullet: Build Betaflight SITL",
+        "type": "process",
+        "command": "bash",
+        "args": [
+          "tools/setup_betaflight_sitl.sh"
+        ],
+        "options": {
+          "cwd": "${workspaceFolder:bullet_drone}"
+        },
+        "problemMatcher": [
+          "$gcc"
+        ]
+      },
+      {
         "label": "Bullet: Run all (custom MCAP directory)",
         "type": "process",
         "command": "bash",
         "args": [
           "-c",
-          "set -e\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py --mcap-output-dir ~/workspaces/bullet/recordings\n"
+          "set -e\npython3 tools/cleanup_flight.py\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py --mcap-output-dir ~/workspaces/bullet/recordings\n"
         ],
         "options": {
           "cwd": "${workspaceFolder:bullet_render}"
