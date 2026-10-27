@@ -42,7 +42,7 @@
         "command": "bash",
         "args": [
           "-c",
-          "set -e\ncase '${input:flightProfile}' in\n  internal)\n    physics_config=../config/internal.yaml\n    mission_config=../config/bullet_profile.json\n    ;;\n  betaflight)\n    physics_config=../config/betaflight.yaml\n    mission_config=../config/betaflight.json\n    ;;\n  *) echo 'Unknown flight profile' >&2; exit 2 ;;\nesac\npython3 tools/cleanup_flight.py\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py --physics-config \"$physics_config\" --mission-config \"$mission_config\" --mcap-output-dir ~/workspaces/bullet/recordings\n"
+          "set -e\ncase '${input:flightProfile}' in\n  internal)\n    physics_config=../config/internal.yaml\n    mission_config=../config/bullet_profile.yaml\n    ;;\n  betaflight)\n    physics_config=../config/betaflight.yaml\n    mission_config=../config/betaflight_los.yaml\n    ;;\n  *) echo 'Unknown flight profile' >&2; exit 2 ;;\nesac\npython3 tools/cleanup_flight.py\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py --physics-config \"$physics_config\" --mission-config \"$mission_config\" --mcap-output-dir ~/workspaces/bullet/recordings\n"
         ],
         "options": {
           "cwd": "${workspaceFolder:bullet_render}"
