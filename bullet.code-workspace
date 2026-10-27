@@ -1,6 +1,10 @@
 {
   "folders": [
     {
+      "name": "config",
+      "path": "config"
+    },
+    {
       "path": "bullet_render"
     },
     {
@@ -38,7 +42,7 @@
         "command": "bash",
         "args": [
           "-c",
-          "set -e\npython3 tools/cleanup_flight.py\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py\n"
+          "set -e\ncase '${input:flightProfile}' in\n  internal)\n    physics_config=../config/internal.yaml\n    mission_config=../config/bullet_profile.json\n    ;;\n  betaflight)\n    physics_config=../config/betaflight.yaml\n    mission_config=../config/betaflight.json\n    ;;\n  *) echo 'Unknown flight profile' >&2; exit 2 ;;\nesac\npython3 tools/cleanup_flight.py\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py --physics-config \"$physics_config\" --mission-config \"$mission_config\" --mcap-output-dir ~/workspaces/bullet/recordings\n"
         ],
         "options": {
           "cwd": "${workspaceFolder:bullet_render}"
@@ -54,7 +58,7 @@
         "runOptions": {
           "instanceLimit": 1
         },
-        "detail": "Build renderer and launch recorded flight services. One MCAP per flight, process logs per launch. Wait for Mission READY, then press Start."
+        "detail": "Select Internal or Betaflight to load its matching physics and mission profiles. Save MCAP files to ~/workspaces/bullet/recordings. Wait for Mission READY, then press Start."
       },
       {
         "label": "FlightLens: Open",
@@ -86,30 +90,18 @@
         "problemMatcher": [
           "$gcc"
         ]
-      },
+      }
+    ],
+    "inputs": [
       {
-        "label": "Bullet: Run all (custom MCAP directory)",
-        "type": "process",
-        "command": "bash",
-        "args": [
-          "-c",
-          "set -e\npython3 tools/cleanup_flight.py\ncmake --preset debug\ncmake --build --preset debug\nexec uv run --locked --all-packages --all-extras --all-groups python tools/run_flight.py --mcap-output-dir ~/workspaces/bullet/recordings\n"
+        "id": "flightProfile",
+        "type": "pickString",
+        "description": "Select the backend and matching profiles",
+        "options": [
+          "internal",
+          "betaflight"
         ],
-        "options": {
-          "cwd": "${workspaceFolder:bullet_render}"
-        },
-        "problemMatcher": [
-          "$gcc"
-        ],
-        "presentation": {
-          "reveal": "always",
-          "panel": "dedicated",
-          "clear": true
-        },
-        "runOptions": {
-          "instanceLimit": 1
-        },
-        "detail": "Build and launch the flight services; save MCAP files to ~/workspaces/bullet/recordings. Wait for Mission READY, then press Start."
+        "default": "betaflight"
       }
     ]
   }

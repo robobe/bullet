@@ -1,0 +1,207 @@
+# Complete workspace flight profile. Every option accepted by YamlConfigLoader is explicit.
+simulation:
+  # Physics step duration in seconds; positive and finite (240 Hz here).
+  timestep_s: 0.004166666666666667
+  # Positive simulation step budget; callers decide whether to enforce it.
+  max_steps: 1200
+  # Enable the PyBullet window; requires a graphical display.
+  gui: true
+  # World [X, Y, Z] gravitational acceleration in m/s^2; world Z points up.
+  gravity_m_s2: [0.0, 0.0, -9.81]
+
+# Vehicle identity, physical mass and initial pose.
+drone:
+  # Telemetry identity; nonblank and at most 128 characters.
+  drone_id: drone_1
+  # Total vehicle mass in kg; positive and finite.
+  mass_kg: 1.0
+  # Initial world [X, Y, Z] position in metres.
+  initial_position_m: [0.0, 0.0, 1.0]
+
+# Flight-control backend selection.
+control:
+  # Flight backend: internal or betaflight.
+  backend: betaflight
+
+# Backend-neutral RC channel mapping and switch thresholds.
+rc:
+  # One-based channel order for aileron, elevator, throttle and rudder; must permute CH1..4.
+  aetr_channels: [1, 2, 3, 4]
+  # AUX channel used for arming; integer 5..18 and distinct from mode_channel.
+  arm_channel: 5
+  # AUX channel used for Angle mode; integer 5..18 and distinct from arm_channel.
+  mode_channel: 6
+  # Arm switch activates above this PWM value; integer range 1001..2000.
+  arm_threshold: 1500
+  # Angle switch activates above this PWM value; integer range 1001..2000.
+  angle_threshold: 1500
+  # Roll and pitch angle represented by full RC deflection in radians; positive and below pi/2.
+  max_angle_rad: 0.7853981633974483
+
+# Physics-owned noisy sensor models.
+sensors:
+  # Body-frame accelerometer and gyroscope model.
+  imu:
+    # Enable IMU samples; false produces no IMU reading.
+    enabled: true
+    # Noise interpretation: per_sample or density.
+    noise_model: density
+    # Body [X, Y, Z] per-sample acceleration noise in m/s^2; zero in density mode.
+    accelerometer_stddev_m_s2: [0.0, 0.0, 0.0]
+    # Body [X, Y, Z] fixed acceleration bias in m/s^2.
+    accelerometer_bias_m_s2: [0.0, 0.0, 0.0]
+    # Body [X, Y, Z] per-sample angular-rate noise in rad/s; zero in density mode.
+    gyro_stddev_rad_s: [0.0, 0.0, 0.0]
+    # Body [X, Y, Z] fixed angular-rate bias in rad/s.
+    gyro_bias_rad_s: [0.0, 0.0, 0.0]
+    # Repeatable random sequence seed; integer.
+    seed: 0
+    # Acceleration noise density in (m/s^2)/sqrt(Hz); nonnegative, density mode only.
+    accelerometer_noise_density_m_s2_sqrt_hz: [0.00063743225, 0.00063743225, 0.0006864655]
+    # Angular-rate noise density in (rad/s)/sqrt(Hz); nonnegative, density mode only.
+    gyro_noise_density_rad_s_sqrt_hz: [0.00004886921906, 0.00004886921906, 0.00004886921906]
+    # Enable low-pass filtering before attitude estimation.
+    filter_enabled: true
+    # Accelerometer low-pass cutoff in Hz; positive and below the sample Nyquist frequency.
+    accelerometer_cutoff_hz: 30.0
+    # Gyroscope low-pass cutoff in Hz; positive and below the sample Nyquist frequency.
+    gyro_cutoff_hz: 60.0
+    # Acceleration bias random walk in (m/s^2)/sqrt(s); nonnegative.
+    accelerometer_bias_random_walk_m_s2_sqrt_s: [0.0, 0.0, 0.0]
+    # Gyroscope bias random walk in (rad/s)/sqrt(s); nonnegative.
+    gyro_bias_random_walk_rad_s_sqrt_s: [0.0, 0.0, 0.0]
+  # Pressure sensor and pressure-to-altitude model.
+  barometer:
+    # Enable pressure and derived-altitude samples; false produces no barometer reading.
+    enabled: true
+    # Per-sample Gaussian pressure standard deviation in Pa; nonnegative.
+    pressure_stddev_pa: 2.3
+    # Fixed pressure bias in Pa; finite.
+    pressure_bias_pa: 0.0
+    # Pressure at the reference altitude in Pa; positive.
+    reference_pressure_pa: 101325.0
+    # Constant atmosphere reference temperature in K; positive.
+    reference_temperature_k: 288.15
+    # World-Z altitude associated with reference_pressure_pa in metres.
+    reference_altitude_m: 0.0
+    # Repeatable random sequence seed; integer.
+    seed: 1
+    # Enable pressure filtering before altitude conversion.
+    filter_enabled: true
+    # Pressure-filter time constant in seconds; positive, larger means smoother and slower.
+    filter_time_constant_s: 0.1
+
+# Sensor or ground-truth sources exposed to rendering and the application.
+pose_sources:
+  # Published/rendered altitude source: ground_truth or barometer.
+  altitude: barometer
+  # Published/rendered attitude source: ground_truth or imu.
+  attitude: imu
+
+# IMU attitude-estimator tuning.
+attitude_estimator:
+  # Accelerometer tilt-correction gain in 1/s; nonnegative.
+  kp_s_inv: 2.0
+  # Gyroscope bias-adaptation gain in 1/s^2; nonnegative.
+  ki_s_inv2: 0.05
+  # Acceleration rejection fraction of gravity; strictly between 0 and 1.
+  acceleration_rejection_fraction: 0.2
+
+# Aerodynamic effects applied by physics.
+forces:
+  # Air density in kg/m^3 used by drag and wakes; positive.
+  air_density_kg_m3: 1.225
+  # Rotor disk radius in metres used by inflow, wakes and ground effect; positive.
+  rotor_radius_m: 0.0635
+  # Quadratic airframe resistance at the center of mass.
+  body_drag:
+    # Enable quadratic body drag.
+    enabled: true
+    # Body [X, Y, Z] drag coefficient times projected area in m^2; nonnegative.
+    cd_area_m2: [0.02, 0.02, 0.03]
+  # Linear resistance coupled to actual rotor speed.
+  rotor_drag:
+    # Enable rotor-speed-dependent linear drag.
+    enabled: true
+    # Body-axis coefficients in N/((rad/s)*(m/s)); nonnegative.
+    coefficients_n_per_rad_s_m_s: [0.00001, 0.00001, 0.000011]
+  # Torque opposing body angular velocity.
+  angular_damping:
+    # Enable explicit aerodynamic damping torque.
+    enabled: true
+    # Body [roll, pitch, yaw] damping in N*m/(rad/s); nonnegative.
+    coefficients_nm_per_rad_s: [0.002, 0.002, 0.001]
+  # Thrust loss caused by horizontal advance ratio.
+  inflow:
+    # Enable advance-ratio thrust reduction.
+    enabled: true
+    # Dimensionless reduction strength; nonnegative.
+    coefficient: 1.0
+    # Lower thrust multiplier bound; greater than zero and at most 1.
+    minimum_multiplier: 0.5
+  # In-plane rotor force caused by local airflow.
+  flapping:
+    # Enable in-plane rotor flapping force.
+    enabled: true
+    # Dimensionless flapping strength; nonnegative.
+    coefficient: 0.1
+  # Rotor angular-momentum reaction to body rotation.
+  gyroscopic:
+    # Enable rotor gyroscopic torque.
+    enabled: true
+    # Per-rotor spin-axis inertia in kg*m^2; nonnegative.
+    rotor_inertia_kg_m2: 0.00001
+  # Near-surface rotor thrust increase.
+  ground_effect:
+    # Enable surface-proximity thrust gain.
+    enabled: true
+    # Dimensionless gain strength; nonnegative.
+    coefficient: 0.1
+    # Upper thrust multiplier; at least 1.
+    maximum_multiplier: 1.2
+    # Downward surface-query distance in metres; positive.
+    query_range_m: 1.0
+    # Distance floor in metres; positive and no greater than query_range_m.
+    minimum_distance_m: 0.01
+  # Downstream airflow generated by rotors.
+  propwash:
+    # Enable downstream rotor wake airflow.
+    enabled: true
+    # Dimensionless wake widening per downstream metre; nonnegative.
+    spread: 0.1
+    # Combined wake-speed limit in m/s; positive.
+    maximum_speed_m_s: 20.0
+    # Body [X, Y, Z] wake sampling offset in metres.
+    body_sample_offset_m: [0.0, 0.0, -0.03]
+
+# Ambient mean wind and correlated gust model.
+wind:
+  # Enable ambient wind independently of propwash.
+  enabled: true
+  # Wind model: constant or gusts.
+  behavior: constant
+  # Mean world [X, Y, Z] air velocity in m/s.
+  velocity_world_m_s: [0.0, 0.0, 0.0]
+  # Stationary gust standard deviation per world axis in m/s; nonnegative.
+  gust_stddev_m_s: [0.0, 0.0, 0.0]
+  # Gust correlation time in simulation seconds; positive.
+  correlation_time_s: 1.0
+  # Repeatable gust random sequence seed; integer.
+  seed: 2
+
+# Optional physics telemetry topic selection.
+telemetry:
+  # Publish measured IMU and barometer topics.
+  sensors: true
+  # Publish raw 18-channel RC input.
+  rc_input: true
+  # Publish decoded controller requests.
+  control: true
+  # Publish mixer targets, predicted wrench and saturation.
+  allocation: true
+  # Publish modeled force and torque contributions.
+  forces: true
+  # Publish ambient wind, gust, wake and relative-airflow data.
+  airflow: true
+  # Publish simulation time, wall time and real-time factor.
+  timing: true
