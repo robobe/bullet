@@ -27,12 +27,14 @@ def test_view_has_telemetry_and_parameters_tabs_and_renders_snapshot(application
     presenter = FakePresenter()
     window = MainWindow(presenter)
     try:
-        snapshot = TelemetrySnapshot(attitude=Attitude(.1, .2, .3, 10), altitude=Altitude(4., 20))
+        snapshot = TelemetrySnapshot(attitude=Attitude(.1, .2, .3, 10), altitude=Altitude(4., 20),
+                                     vertical_speed_m_s=1.25)
         window.set_snapshot(snapshot)
         assert window.tabs.count() == 2
         assert window.tabs.tabText(0) == 'Telemetry'
         assert window.tabs.tabText(1) == 'Parameters'
         assert '+17.2°' in window.yaw.text()
         assert window.altitude.altitude_m == 4.
+        assert window.vertical_speed.vertical_speed_m_s == 1.25
     finally:
         window.close()

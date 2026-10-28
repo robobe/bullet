@@ -19,5 +19,6 @@ uv run --locked --package bullet-view bullet-view --mavlink-endpoint udpin:0.0.0
 with the same port, or override the app's `--mavlink-endpoint` output and this
 viewer's input together.
 
-V1 displays HEARTBEAT, ATTITUDE, and ALTITUDE telemetry. Parameter updates and
-automatic reconnects are intentionally deferred to v2.
+V1 displays HEARTBEAT, ATTITUDE, ALTITUDE, and filtered vertical-speed
+telemetry. The altitude gauge spans 0–100 m. Parameter updates and automatic
+reconnects are intentionally deferred to v2.

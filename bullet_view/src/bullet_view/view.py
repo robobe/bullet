@@ -1,5 +1,5 @@
 """FlightLens-themed PySide6 view for Bullet telemetry."""
-from math import degrees
+from math import degrees, radians, sin, cos
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
@@ -8,8 +8,11 @@ from .model import TelemetrySnapshot
 
 WINDOW_WIDTH = 1100
 WINDOW_HEIGHT = 720
-MAX_ALTITUDE_M = 30.
 PITCH_PIXELS_PER_RAD = 85.
+MAX_ALTITUDE_M = 100.
+MAX_VERTICAL_SPEED_M_S = 5.
+PITCH_MARK_DEGREES = (-30, -20, -10, 10, 20, 30)
+ROLL_MARK_DEGREES = (-60, -45, -30, -20, -10, 10, 20, 30, 45, 60)
 
 
 class FlightBall(QtWidgets.QWidget):
@@ -46,10 +49,30 @@ class FlightBall(QtWidgets.QWidget):
         painter.fillRect(QtCore.QRectF(-radius * 2, 0, radius * 4, radius * 2), QtGui.QColor('#9b694e'))
         painter.setPen(QtGui.QPen(QtGui.QColor('#d9e6f4'), 2))
         painter.drawLine(QtCore.QPointF(-radius * 2, 0), QtCore.QPointF(radius * 2, 0))
+        painter.setFont(QtGui.QFont('sans-serif', 9, QtGui.QFont.Weight.Bold))
+        for pitch_degrees in PITCH_MARK_DEGREES:
+            y = radians(pitch_degrees) * PITCH_PIXELS_PER_RAD
+            width = radius * (.42 if abs(pitch_degrees) == 30 else .3)
+            painter.drawLine(QtCore.QPointF(-width, y), QtCore.QPointF(width, y))
+            painter.drawText(QtCore.QPointF(width + 5, y + 4), f'{abs(pitch_degrees)}°')
         painter.restore()
         painter.setPen(QtGui.QPen(QtGui.QColor('#eab85a'), 3))
         painter.drawLine(center + QtCore.QPointF(-radius * .42, 0), center + QtCore.QPointF(-radius * .12, 0))
         painter.drawLine(center + QtCore.QPointF(radius * .12, 0), center + QtCore.QPointF(radius * .42, 0))
+        painter.setPen(QtGui.QPen(QtGui.QColor('#d9e6f4'), 2))
+        painter.setFont(QtGui.QFont('sans-serif', 8, QtGui.QFont.Weight.Bold))
+        for roll_degrees in ROLL_MARK_DEGREES:
+            angle = radians(roll_degrees)
+            inner = radius - 10
+            outer = radius - 2
+            start = center + QtCore.QPointF(sin(angle) * inner, -cos(angle) * inner)
+            end = center + QtCore.QPointF(sin(angle) * outer, -cos(angle) * outer)
+            painter.drawLine(start, end)
+            if abs(roll_degrees) in (30, 60):
+                label_radius = radius - 25
+                label = center + QtCore.QPointF(sin(angle) * label_radius, -cos(angle) * label_radius)
+                painter.drawText(QtCore.QRectF(label.x() - 12, label.y() - 8, 24, 16),
+                                 QtCore.Qt.AlignmentFlag.AlignCenter, f'{abs(roll_degrees)}°')
         painter.end()
 
 
@@ -84,6 +107,48 @@ class AltitudeWidget(QtWidgets.QWidget):
             painter.setBrush(QtGui.QColor('#58b8f5'))
             height = (bottom - top) * fraction
             painter.drawRoundedRect(self.width() / 2 - 18, bottom - height, 36, height, 8, 8)
+        painter.end()
+
+
+class VerticalSpeedWidget(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.vertical_speed_m_s = None
+        self.setMinimumSize(150, 360)
+        self.setAccessibleName('Vertical speed gauge')
+
+    def set_vertical_speed(self, vertical_speed_m_s):
+        self.vertical_speed_m_s = vertical_speed_m_s
+        self.update()
+
+    def paintEvent(self, event):
+        del event
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setPen(QtGui.QPen(QtGui.QColor('#30485f'), 1))
+        painter.setBrush(QtGui.QColor('#101c2a'))
+        painter.drawRoundedRect(self.rect().adjusted(8, 8, -8, -8), 8, 8)
+        painter.setPen(QtGui.QColor('#d9e6f4'))
+        painter.setFont(QtGui.QFont('sans-serif', 15, QtGui.QFont.Weight.Bold))
+        text = 'Unavailable' if self.vertical_speed_m_s is None else f'{self.vertical_speed_m_s:+.2f} m/s'
+        painter.drawText(self.rect().adjusted(12, 24, -12, -20),
+                         QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignHCenter, text)
+        top, bottom = 86, self.height() - 28
+        center_y = (top + bottom) / 2
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.setBrush(QtGui.QColor('#203950'))
+        painter.drawRoundedRect(self.width() / 2 - 18, top, 36, bottom - top, 8, 8)
+        painter.setPen(QtGui.QPen(QtGui.QColor('#d9e6f4'), 2))
+        painter.drawLine(self.width() / 2 - 28, center_y, self.width() / 2 + 28, center_y)
+        if self.vertical_speed_m_s is not None:
+            fraction = max(-1., min(1., self.vertical_speed_m_s / MAX_VERTICAL_SPEED_M_S))
+            painter.setPen(QtCore.Qt.PenStyle.NoPen)
+            painter.setBrush(QtGui.QColor('#70d6ad' if fraction >= 0 else '#eab85a'))
+            height = abs(bottom - top) / 2 * abs(fraction)
+            if fraction >= 0:
+                painter.drawRoundedRect(self.width() / 2 - 18, center_y - height, 36, height, 8, 8)
+            else:
+                painter.drawRoundedRect(self.width() / 2 - 18, center_y, 36, height, 8, 8)
         painter.end()
 
 
@@ -131,6 +196,8 @@ class MainWindow(QtWidgets.QMainWindow):
         layout.addWidget(self.flight_ball, 2)
         self.altitude = AltitudeWidget()
         layout.addWidget(self.altitude, 1)
+        self.vertical_speed = VerticalSpeedWidget()
+        layout.addWidget(self.vertical_speed, 1)
         panel = QtWidgets.QFrame()
         panel.setObjectName('card')
         details = QtWidgets.QVBoxLayout(panel)
@@ -160,6 +227,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def set_snapshot(self, snapshot: TelemetrySnapshot):
         self.flight_ball.set_attitude(snapshot.attitude)
         self.altitude.set_altitude(snapshot.altitude)
+        self.vertical_speed.set_vertical_speed(snapshot.vertical_speed_m_s)
         if snapshot.attitude is None:
             for label, name in ((self.roll, 'Roll'), (self.pitch, 'Pitch'), (self.yaw, 'Yaw')):
                 label.setText(name + '\n—')

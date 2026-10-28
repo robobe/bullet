@@ -24,6 +24,7 @@ class TelemetrySnapshot:
     attitude: Attitude | None = None
     altitude: Altitude | None = None
     error: str | None = None
+    vertical_speed_m_s: float | None = None
 
 
 @dataclass(frozen=True)

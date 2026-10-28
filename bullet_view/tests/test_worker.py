@@ -1,6 +1,7 @@
 from bullet_view.model import TelemetryUpdate
-from bullet_view.presenter import Presenter
+from bullet_view.presenter import Presenter, VerticalSpeedEstimator
 from bullet_view.worker import MavlinkWorker
+import pytest
 
 
 class Message:
@@ -52,3 +53,12 @@ def test_presenter_only_reports_connected_after_a_message():
 
     assert presenter.snapshot.connected
     assert statuses[-1] == 'Connected'
+
+
+def test_vertical_speed_estimator_filters_altitude_rate_and_resets_after_gap():
+    estimator = VerticalSpeedEstimator()
+
+    assert estimator.update(10., 1.) is None
+    assert estimator.update(11., 1.1) == pytest.approx(10.)
+    assert estimator.update(11.5, 1.2) == pytest.approx(8.75)
+    assert estimator.update(20., 3.) is None

@@ -10,6 +10,41 @@ from .worker import MavlinkWorker
 
 STALE_AFTER_S = .75
 VIEW_REFRESH_PERIOD_MS = 100
+VERTICAL_SPEED_FILTER_ALPHA = .25
+VERTICAL_SPEED_RESET_GAP_S = 1.
+
+
+class VerticalSpeedEstimator:
+    def __init__(self, *, alpha=VERTICAL_SPEED_FILTER_ALPHA, reset_gap_s=VERTICAL_SPEED_RESET_GAP_S):
+        self.alpha = alpha
+        self.reset_gap_s = reset_gap_s
+        self.previous_altitude_m = None
+        self.previous_received_at_s = None
+        self.filtered_speed_m_s = None
+
+    def reset(self):
+        self.previous_altitude_m = None
+        self.previous_received_at_s = None
+        self.filtered_speed_m_s = None
+
+    def update(self, altitude_m, received_at_s):
+        previous_altitude_m = self.previous_altitude_m
+        previous_received_at_s = self.previous_received_at_s
+        self.previous_altitude_m = altitude_m
+        self.previous_received_at_s = received_at_s
+        if previous_altitude_m is None or previous_received_at_s is None:
+            self.filtered_speed_m_s = None
+            return None
+        delta_s = received_at_s - previous_received_at_s
+        if delta_s <= 0 or delta_s > self.reset_gap_s:
+            self.filtered_speed_m_s = None
+            return None
+        raw_speed_m_s = (altitude_m - previous_altitude_m) / delta_s
+        if self.filtered_speed_m_s is None:
+            self.filtered_speed_m_s = raw_speed_m_s
+        else:
+            self.filtered_speed_m_s += self.alpha * (raw_speed_m_s - self.filtered_speed_m_s)
+        return self.filtered_speed_m_s
 
 
 class Presenter(QtCore.QObject):
@@ -22,6 +57,7 @@ class Presenter(QtCore.QObject):
         self.worker_factory = worker_factory
         self.clock = clock
         self.snapshot = TelemetrySnapshot()
+        self.vertical_speed = VerticalSpeedEstimator()
         self.thread = QtCore.QThread(self)
         self.worker = worker_factory(endpoint)
         self.worker.moveToThread(self.thread)
@@ -57,6 +93,8 @@ class Presenter(QtCore.QObject):
             values['attitude'] = update.value
         elif update.kind == 'ALTITUDE':
             values['altitude'] = update.value
+            values['vertical_speed_m_s'] = self.vertical_speed.update(
+                update.value.local_m, update.received_at_s)
         self.snapshot = replace(self.snapshot, **values)
         if first_message:
             self._set_status('Connected')
@@ -64,6 +102,7 @@ class Presenter(QtCore.QObject):
 
     @QtCore.Slot(str)
     def _on_failure(self, message):
+        self.vertical_speed.reset()
         self.snapshot = replace(self.snapshot, connected=False, error=message)
         self._set_status('Disconnected: ' + message)
         self.snapshot_changed.emit(self.snapshot)
@@ -73,7 +112,8 @@ class Presenter(QtCore.QObject):
             return
         age = self.clock() - self.snapshot.last_message_at_s
         if age > STALE_AFTER_S and self.snapshot.connected:
-            self.snapshot = replace(self.snapshot, connected=False)
+            self.vertical_speed.reset()
+            self.snapshot = replace(self.snapshot, connected=False, vertical_speed_m_s=None)
             self._set_status('Telemetry stale')
             self.snapshot_changed.emit(self.snapshot)
 

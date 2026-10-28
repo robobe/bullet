@@ -81,6 +81,22 @@
         "problemMatcher": []
       },
       {
+        "label": "Bullet View: Open",
+        "type": "process",
+        "command": "uv",
+        "args": [
+          "run",
+          "--locked",
+          "--package",
+          "bullet-view",
+          "bullet-view"
+        ],
+        "options": {
+          "cwd": "${workspaceFolder:bullet_view}"
+        },
+        "problemMatcher": []
+      },
+      {
         "label": "Bullet: Build Betaflight SITL",
         "type": "process",
         "command": "bash",
