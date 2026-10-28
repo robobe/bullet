@@ -15,12 +15,12 @@ MAVLink telemetry.
 
 ## Verification
 
-Passed: `uv run --locked --package bullet-view pytest -q` (4 passed).
+Passed: `uv run --locked --package bullet-view pytest -q` (5 passed).
 
 ## Status
 
-Pending
+Implemented
 
 ## Implementation commit
 
-Pending
+`8a28e85`
