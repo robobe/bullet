@@ -19,12 +19,12 @@ the native attitude ball.
 
 ## Verification
 
-Pending
+Passed: `uv run --locked --package bullet-view pytest -q` (6 passed).
 
 ## Status
 
-Pending
+Implemented
 
 ## Implementation commit
 
-Pending
+`8c3b8f1`
