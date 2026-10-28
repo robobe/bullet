@@ -29,8 +29,10 @@ version = "0.1.0"
 source = { editable = "bullet_app" }
 dependencies = [
     { name = "bullet-msgs" },
+    { name = "click" },
     { name = "jsonschema" },
     { name = "los-tracking" },
+    { name = "loguru" },
     { name = "msp-link" },
     { name = "numpy" },
     { name = "opencv-python" },
@@ -46,8 +48,10 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "bullet-msgs", editable = "bullet_msgs" },
+    { name = "click", specifier = ">=8.5,<9" },
     { name = "jsonschema", specifier = ">=4,<5" },
     { name = "los-tracking", editable = "los_tracking" },
+    { name = "loguru", specifier = ">=0.7,<1" },
     { name = "msp-link", editable = "msp_link" },
     { name = "numpy", specifier = ">=2,<3" },
     { name = "opencv-python", specifier = ">=4.10,<5" },
