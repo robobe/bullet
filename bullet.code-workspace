@@ -70,10 +70,13 @@
         "args": [
           "run",
           "--locked",
-          "--all-packages",
-          "--all-extras",
-          "--all-groups",
-          "flight-lens"
+          "--extra",
+          "assistant",
+          "--package",
+          "flight-lens",
+          "flight-lens",
+          "--config",
+          "config/flight_lens.yaml"
         ],
         "options": {
           "cwd": "${workspaceFolder:flight_lens}"
