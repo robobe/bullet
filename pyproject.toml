@@ -7,5 +7,6 @@ members = [
     "los_tracking",
     "mcap_bagger",
     "flight_lens",
+    "bullet_view",
     "msp_link",
 ]
