@@ -4,11 +4,13 @@ import time
 
 from PySide6 import QtCore
 from pymavlink import mavutil
+import re
 
-from .model import Attitude, Altitude, TelemetryUpdate
+from .model import Attitude, Altitude, StatusText, TelemetryUpdate
 
 
 RECEIVE_TIMEOUT_S = .2
+STATUS_INDEX_RE = re.compile(r'^\[(\d+)\]\s*(.*)$')
 
 
 class MavlinkWorker(QtCore.QObject):
@@ -35,7 +37,7 @@ class MavlinkWorker(QtCore.QObject):
             self.connected.emit()
             while not self.stop_requested.is_set():
                 message = self.connection.recv_match(
-                    type=['HEARTBEAT', 'ATTITUDE', 'ALTITUDE'],
+                    type=['HEARTBEAT', 'ATTITUDE', 'ALTITUDE', 'STATUSTEXT'],
                     blocking=True,
                     timeout=RECEIVE_TIMEOUT_S,
                 )
@@ -57,6 +59,11 @@ class MavlinkWorker(QtCore.QObject):
             value = Attitude(message.roll, message.pitch, message.yaw, message.time_boot_ms)
         elif kind == 'ALTITUDE':
             value = Altitude(message.altitude_local, message.time_usec)
+        elif kind == 'STATUSTEXT':
+            raw_text = message.text.decode('utf-8', errors='replace') if isinstance(message.text, bytes) else message.text
+            match = STATUS_INDEX_RE.match(raw_text)
+            index = int(match.group(1)) if match else 0
+            value = StatusText(index, message.severity, raw_text, received_at_s)
         else:
             return
         self.update.emit(TelemetryUpdate(kind, value, received_at_s))

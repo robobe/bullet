@@ -1,6 +1,11 @@
 # Bullet View
 
 Bullet View is a read-only MAVLink telemetry window for Bullet flight runs.
+
+Mission `STATUSTEXT` messages are shown in the Telemetry tab with their MAVLink
+severity color. The log keeps the full session history, follows the newest five
+lines during the mission, and becomes manually scrollable after completion.
+Click a message to inspect its severity, index, received text, and description.
 It uses the same dark blue/teal visual theme as FlightLens.
 
 ## Run

@@ -2,6 +2,8 @@
 from math import degrees, radians, sin, cos
 
 from PySide6 import QtCore, QtGui, QtWidgets
+from bullet_msgs.status_messages import (MAV_SEVERITY_ERROR, MAV_SEVERITY_INFO, MAV_SEVERITY_WARNING,
+                                         STATUS_MESSAGE_BY_INDEX, STATUS_MESSAGE_BY_KEY)
 
 from .model import TelemetrySnapshot
 
@@ -13,6 +15,14 @@ MAX_ALTITUDE_M = 100.
 MAX_VERTICAL_SPEED_M_S = 5.
 PITCH_MARK_DEGREES = (-30, -20, -10, 10, 20, 30)
 ROLL_MARK_DEGREES = (-60, -45, -30, -20, -10, 10, 20, 30, 45, 60)
+
+
+SEVERITY_COLORS = {
+    MAV_SEVERITY_INFO: '#d9e6f4',
+    MAV_SEVERITY_WARNING: '#eab85a',
+    MAV_SEVERITY_ERROR: '#ef6b73',
+    2: '#ff5b7f',
+}
 
 
 class FlightBall(QtWidgets.QWidget):
@@ -156,6 +166,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, presenter):
         super().__init__()
         self.presenter = presenter
+        self._message_count = 0
+        self._auto_follow_messages = True
         self.setWindowTitle('Bullet View · MAVLink Telemetry')
         self.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.setMinimumSize(820, 560)
@@ -209,6 +221,25 @@ class MainWindow(QtWidgets.QMainWindow):
             details.addWidget(label)
         details.addStretch(1)
         layout.addWidget(panel, 1)
+        message_panel = QtWidgets.QFrame()
+        message_panel.setObjectName('card')
+        message_layout = QtWidgets.QVBoxLayout(message_panel)
+        message_layout.addWidget(QtWidgets.QLabel('STATUS MESSAGES'))
+        self.message_log = QtWidgets.QListWidget()
+        self.message_log.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+        self.message_log.setUniformItemSizes(True)
+        self.message_log.setMinimumHeight(125)
+        self.message_log.setAccessibleName('Mission status message log')
+        self.message_log.itemClicked.connect(self._show_message_details)
+        message_layout.addWidget(self.message_log, 1)
+        message_layout.addWidget(QtWidgets.QLabel('MESSAGE DETAILS'))
+        self.message_details = QtWidgets.QLabel('Select a message to inspect its description.')
+        self.message_details.setWordWrap(True)
+        self.message_details.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        self.message_details.setMinimumHeight(110)
+        self.message_details.setStyleSheet('padding:8px; color:#9bb0c8;')
+        message_layout.addWidget(self.message_details)
+        layout.addWidget(message_panel, 2)
 
     @staticmethod
     def _value_label(name):
@@ -228,6 +259,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.flight_ball.set_attitude(snapshot.attitude)
         self.altitude.set_altitude(snapshot.altitude)
         self.vertical_speed.set_vertical_speed(snapshot.vertical_speed_m_s)
+        for message in snapshot.messages[self._message_count:]:
+            item = QtWidgets.QListWidgetItem(message.text)
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, message)
+            item.setForeground(QtGui.QColor(SEVERITY_COLORS.get(message.severity, '#d9e6f4')))
+            self.message_log.addItem(item)
+            if self._is_completion(message):
+                self._auto_follow_messages = False
+        self._message_count = len(snapshot.messages)
+        if self._auto_follow_messages or snapshot.messages and self._is_completion(snapshot.messages[-1]):
+            self.message_log.scrollToBottom()
         if snapshot.attitude is None:
             for label, name in ((self.roll, 'Roll'), (self.pitch, 'Pitch'), (self.yaw, 'Yaw')):
                 label.setText(name + '\n—')
@@ -237,6 +278,19 @@ class MainWindow(QtWidgets.QMainWindow):
                       (self.yaw, 'Yaw', snapshot.attitude.yaw_rad))
             for label, name, value in values:
                 label.setText(f'{name}\n{degrees(value):+.1f}°')
+
+    @staticmethod
+    def _is_completion(message):
+        return message.index == STATUS_MESSAGE_BY_KEY['completed'].index or message.text.startswith('COMPLETED:')
+
+    def _show_message_details(self, item):
+        message = item.data(QtCore.Qt.ItemDataRole.UserRole)
+        definition = STATUS_MESSAGE_BY_INDEX.get(message.index)
+        severity = {2: 'CRITICAL', 3: 'ERROR', 4: 'WARNING', 5: 'NOTICE', 6: 'INFO', 7: 'DEBUG'}.get(
+            message.severity, str(message.severity))
+        description = 'No description is available for this message.' if definition is None else definition.description
+        self.message_details.setText(
+            f'Index: {message.index:02d}\nSeverity: {severity}\n\n{description}\n\nReceived: {message.text}')
 
     def closeEvent(self, event):
         self.presenter.stop()

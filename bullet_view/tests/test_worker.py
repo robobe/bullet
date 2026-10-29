@@ -1,4 +1,4 @@
-from bullet_view.model import TelemetryUpdate
+from bullet_view.model import StatusText, TelemetryUpdate
 from bullet_view.presenter import Presenter, VerticalSpeedEstimator
 from bullet_view.worker import MavlinkWorker
 import pytest
@@ -24,6 +24,17 @@ def test_worker_maps_standard_mavlink_messages_to_updates():
     assert [update.kind for update in updates] == ['ATTITUDE', 'ALTITUDE', 'HEARTBEAT']
     assert updates[0].value.roll_rad == .1
     assert updates[1].value.local_m == 5.
+
+
+def test_worker_maps_status_text_and_index():
+    worker = MavlinkWorker('test')
+    updates = []
+    worker.update.connect(updates.append)
+    worker._emit_message(Message('STATUSTEXT', severity=4, text='[07] warning'), 1.)
+    assert updates[0].kind == 'STATUSTEXT'
+    assert updates[0].value.index == 7
+    assert updates[0].value.severity == 4
+    assert updates[0].value.text == '[07] warning'
 
 
 def test_worker_does_not_retry_after_connection_failure():
@@ -53,6 +64,12 @@ def test_presenter_only_reports_connected_after_a_message():
 
     assert presenter.snapshot.connected
     assert statuses[-1] == 'Connected'
+
+
+def test_presenter_retains_status_messages_in_snapshot():
+    presenter = Presenter('test')
+    presenter._on_update(TelemetryUpdate('STATUSTEXT', StatusText(2, 4, '[02] warning', 1.), 1.))
+    assert presenter.snapshot.messages[0].severity == 4
 
 
 def test_vertical_speed_estimator_filters_altitude_rate_and_resets_after_gap():

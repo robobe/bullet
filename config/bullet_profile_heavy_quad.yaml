@@ -39,7 +39,7 @@ tuning:
 # LATERAL ATTITUDE AND YAW
 # ********************
   # Forward approach pitch in degrees. Usage: increase carefully for faster closing.
-  approach_pitch_deg: 20
+  approach_pitch_deg: 12
   # Maximum roll command in degrees. Usage: cap lateral correction authority.
   roll_limit_deg: 30
   # Maximum pitch command in degrees. Usage: cap forward command authority.
@@ -63,13 +63,13 @@ tuning:
 # VERTICAL MOTION AND CONTROL
 # ********************
   # Maximum downward speed in m/s. Usage: cap closing descent.
-  max_descent_m_s: 5.5
+  max_descent_m_s: 3.5
   # Maximum upward speed in m/s. Usage: cap altitude recovery.
   max_climb_m_s: 5.0
   # Vertical-speed reference slew in m/s². Usage: lower for gentler thrust changes.
   vertical_slew_m_s2: 1.0
   # Vertical braking slew in m/s². Usage: raise to arrest excessive downward velocity faster.
-  vertical_brake_slew_m_s2: 8.0
+  vertical_brake_slew_m_s2: 12.0
   # Takeoff altitude proportional gain in 1/s. Usage: aggressive heavy-quad climb response.
   takeoff_kp_s_inv: 1.5
   # Takeoff altitude integral gain in 1/s². Usage: remove persistent climb error during takeoff.
@@ -97,7 +97,7 @@ tuning:
   # Lateral integral-memory limit in degrees. Usage: cap accumulated roll bias.
   lateral_memory_limit_deg: 5
   # Altitude-loop proportional gain in N·s/m. Usage: raise for firmer height correction.
-  vertical_kp_n_s_m: 4.0
+  vertical_kp_n_s_m: 8.0
   # Altitude-loop integral gain in N/m. Usage: use sparingly to remove steady height error.
   vertical_ki_n_m: 0.4
   # Altitude-loop integral limit in N. Usage: cap accumulated thrust correction.
@@ -145,7 +145,7 @@ tuning:
   # Maximum recovery time in s. Usage: fault if visual recovery does not complete.
   recovery_timeout_s: 1.0
   # Sustained control-limit duration in s. Usage: recover before pushing an infeasible approach.
-  limitation_timeout_s: 0.75
+  limitation_timeout_s: 0.25
 # ********************
 # VISUAL ACCEPTANCE LIMITS
 # ********************
@@ -178,7 +178,7 @@ tuning:
   # TTC threshold for terminal stage in s. Usage: reserve final close-in behavior.
   terminal_ttc_s: 0.8
   # Extra TTC feasibility margin in s. Usage: make descent feasibility more conservative.
-  ttc_time_margin_s: 0.1
+  ttc_time_margin_s: 0.3
   # Height margin for descent feasibility in m. Usage: keep landing clearance.
   feasibility_height_margin_m: 0.25
   # Commit threshold for the standard Bullet mission.

@@ -5,7 +5,7 @@ os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 import pytest
 from PySide6 import QtCore, QtWidgets
 
-from bullet_view.model import Altitude, Attitude, TelemetrySnapshot
+from bullet_view.model import Altitude, Attitude, StatusText, TelemetrySnapshot
 from bullet_view.view import MainWindow
 
 
@@ -28,7 +28,8 @@ def test_view_has_telemetry_and_parameters_tabs_and_renders_snapshot(application
     window = MainWindow(presenter)
     try:
         snapshot = TelemetrySnapshot(attitude=Attitude(.1, .2, .3, 10), altitude=Altitude(4., 20),
-                                     vertical_speed_m_s=1.25)
+                                     vertical_speed_m_s=1.25,
+                                     messages=(StatusText(1, 6, '[01] ready', 1.),))
         window.set_snapshot(snapshot)
         assert window.tabs.count() == 2
         assert window.tabs.tabText(0) == 'Telemetry'
@@ -36,5 +37,22 @@ def test_view_has_telemetry_and_parameters_tabs_and_renders_snapshot(application
         assert '+17.2°' in window.yaw.text()
         assert window.altitude.altitude_m == 4.
         assert window.vertical_speed.vertical_speed_m_s == 1.25
+        assert window.message_log.count() == 1
+        assert window.message_log.item(0).text() == '[01] ready'
+        window.message_log.itemClicked.emit(window.message_log.item(0))
+        assert 'waiting for the application to report readiness' in window.message_details.text()
+    finally:
+        window.close()
+
+
+def test_view_stops_auto_follow_after_completion(application):
+    presenter = FakePresenter()
+    window = MainWindow(presenter)
+    try:
+        messages = tuple(StatusText(index, 6, text, float(index)) for index, text in (
+            (1, '[01] ready'), (30, '[30] mission completed'), (2, '[02] late message')))
+        window.set_snapshot(TelemetrySnapshot(messages=messages))
+        assert not window._auto_follow_messages
+        assert window.message_log.count() == 3
     finally:
         window.close()

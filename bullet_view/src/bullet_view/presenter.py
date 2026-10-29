@@ -95,6 +95,8 @@ class Presenter(QtCore.QObject):
             values['altitude'] = update.value
             values['vertical_speed_m_s'] = self.vertical_speed.update(
                 update.value.local_m, update.received_at_s)
+        elif update.kind == 'STATUSTEXT':
+            values['messages'] = self.snapshot.messages + (update.value,)
         self.snapshot = replace(self.snapshot, **values)
         if first_message:
             self._set_status('Connected')

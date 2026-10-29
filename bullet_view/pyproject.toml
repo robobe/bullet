@@ -9,6 +9,7 @@ description = "MAVLink telemetry viewer for Bullet flight simulations"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "bullet-msgs",
     "pymavlink>=2.4,<3",
     "pyside6-essentials>=6.8,<7",
 ]
@@ -23,3 +24,4 @@ bullet-view = "bullet_view.main:main"
 testpaths = ["tests"]
 
 [tool.uv.sources]
+bullet-msgs = { workspace = true }

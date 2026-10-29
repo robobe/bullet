@@ -17,6 +17,14 @@ class Altitude:
 
 
 @dataclass(frozen=True)
+class StatusText:
+    index: int
+    severity: int
+    text: str
+    received_at_s: float
+
+
+@dataclass(frozen=True)
 class TelemetrySnapshot:
     connected: bool = False
     heartbeat_at_s: float | None = None
@@ -25,6 +33,7 @@ class TelemetrySnapshot:
     altitude: Altitude | None = None
     error: str | None = None
     vertical_speed_m_s: float | None = None
+    messages: tuple[StatusText, ...] = ()
 
 
 @dataclass(frozen=True)
