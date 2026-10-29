@@ -1,0 +1,22 @@
+# Betaflight-SITL profile for the 5 kg heavy_quad URDF.
+simulation:
+  # Physics timestep in seconds; 240 Hz baseline.
+  timestep_s: 0.004166666666666667
+  # Maximum caller-controlled physics steps.
+  max_steps: 1200
+  # Show the PyBullet window when true; requires a display.
+  gui: true
+  # World gravity in m/s^2.
+  gravity_m_s2: [0.0, 0.0, -9.81]
+drone:
+  # Stable telemetry identity.
+  drone_id: drone_1
+  # Packaged vehicle definition.
+  urdf: heavy_quad
+  # Total vehicle mass in kilograms.
+  mass_kg: 5.0
+  # Initial world position in metres.
+  initial_position_m: [0.0, 0.0, 1.0]
+control:
+  # Use the Betaflight SITL backend.
+  backend: betaflight
