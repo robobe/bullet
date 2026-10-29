@@ -1,6 +1,10 @@
 {
   "folders": [
     {
+      "name": "bullet-root",
+      "path": "."
+    },
+    {
       "name": "config",
       "path": "config"
     },

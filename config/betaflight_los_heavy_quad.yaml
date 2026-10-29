@@ -41,13 +41,13 @@ tuning:
   # Forward approach pitch in degrees. Usage: increase carefully for faster closing.
   approach_pitch_deg: 25
   # Maximum roll command in degrees. Usage: cap lateral correction authority.
-  roll_limit_deg: 15
+  roll_limit_deg: 20
   # Maximum pitch command in degrees. Usage: cap forward command authority.
   pitch_limit_deg: 30
   # Maximum combined roll/pitch tilt in degrees. Usage: keep within vehicle safety limits.
   combined_tilt_limit_deg: 30
   # Roll-reference slew limit in degrees/s. Usage: lower for smoother lateral response.
-  roll_slew_deg_s: 15
+  roll_slew_deg_s: 30
   # Pitch-reference slew limit in degrees/s. Usage: lower for smoother forward response.
   pitch_slew_deg_s: 5
   # Yaw hold proportional gain in 1/s. Usage: raise only until heading correction is prompt.
@@ -65,11 +65,11 @@ tuning:
   # Maximum downward speed in m/s. Usage: cap closing descent.
   max_descent_m_s: 5.5
   # Maximum upward speed in m/s. Usage: cap altitude recovery.
-  max_climb_m_s: 3.0
+  max_climb_m_s: 5.0
   # Vertical-speed reference slew in m/s². Usage: lower for gentler thrust changes.
   vertical_slew_m_s2: 1.0
   # Vertical braking slew in m/s². Usage: raise to arrest excessive downward velocity faster.
-  vertical_brake_slew_m_s2: 4.0
+  vertical_brake_slew_m_s2: 8.0
   # Altitude-hold gain in 1/s. Usage: raise for firmer height hold.
   hold_altitude_gain_s_inv: 0.5
   # LOS elevation proportional gain in (m/s)/degree. Usage: increase descent response to vertical error.
@@ -81,15 +81,15 @@ tuning:
   # Vertical integral-memory limit in m/s. Usage: cap accumulated descent bias.
   vertical_memory_limit_m_s: 3.0
   # Azimuth proportional gain. Usage: increase lateral response to target offset.
-  azimuth_kp: 0.8
+  azimuth_kp: 1.5
   # Azimuth rate gain in s. Usage: increase damping of lateral motion.
-  azimuth_kd_s: 4.0
+  azimuth_kd_s: 3.0
   # Azimuth integral gain in 1/s. Usage: use sparingly to remove steady offset.
   azimuth_ki_s_inv: 0.05
   # Lateral integral-memory limit in degrees. Usage: cap accumulated roll bias.
   lateral_memory_limit_deg: 5
   # Altitude-loop proportional gain in N·s/m. Usage: raise for firmer height correction.
-  vertical_kp_n_s_m: 2.0
+  vertical_kp_n_s_m: 4.0
   # Altitude-loop integral gain in N/m. Usage: use sparingly to remove steady height error.
   vertical_ki_n_m: 0.2
   # Altitude-loop integral limit in N. Usage: cap accumulated thrust correction.
