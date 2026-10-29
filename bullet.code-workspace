@@ -38,6 +38,9 @@
     },
     {
       "path": "bullet_view"
+    },
+    {
+      "path": "bullet_perception"
     }
   ],
   "tasks": {

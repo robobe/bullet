@@ -12,6 +12,7 @@ dependencies = [
     "bullet-msgs",
     "pymavlink>=2.4,<3",
     "pyside6-essentials>=6.8,<7",
+    "pyzmq>=27,<28",
 ]
 
 [dependency-groups]

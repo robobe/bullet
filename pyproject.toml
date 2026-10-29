@@ -9,4 +9,5 @@ members = [
     "flight_lens",
     "bullet_view",
     "msp_link",
+    "bullet_perception",
 ]

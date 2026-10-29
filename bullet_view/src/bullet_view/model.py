@@ -32,6 +32,25 @@ class StatusText:
 
 
 @dataclass(frozen=True)
+class Bbox:
+    valid: bool
+    x: float | None = None
+    y: float | None = None
+    width: float | None = None
+    height: float | None = None
+
+
+@dataclass(frozen=True)
+class ImageFrame:
+    width: int
+    height: int
+    encoding: str
+    pixels: bytes
+    sequence: int
+    capture_ns: int
+
+
+@dataclass(frozen=True)
 class TelemetrySnapshot:
     connected: bool = False
     heartbeat_at_s: float | None = None
@@ -43,6 +62,8 @@ class TelemetrySnapshot:
     messages: tuple[StatusText, ...] = ()
     heartbeat: Heartbeat | None = None
     mission_stopped: bool = False
+    bbox: Bbox | None = None
+    image: ImageFrame | None = None
 
 
 @dataclass(frozen=True)

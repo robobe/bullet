@@ -5,7 +5,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from bullet_msgs.status_messages import (MAV_SEVERITY_ERROR, MAV_SEVERITY_INFO, MAV_SEVERITY_WARNING,
                                          STATUS_MESSAGE_BY_INDEX, STATUS_MESSAGE_BY_KEY)
 
-from .model import TelemetrySnapshot
+from .model import Bbox, ImageFrame, TelemetrySnapshot
 
 
 WINDOW_WIDTH = 1100
@@ -162,6 +162,63 @@ class VerticalSpeedWidget(QtWidgets.QWidget):
         painter.end()
 
 
+class CameraFrame(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.image = None
+        self.bbox = None
+        self.mode = 'local'
+        self.setMinimumSize(520, 360)
+        self.setAccessibleName('Camera image')
+
+    def set_frame(self, frame: ImageFrame | None, bbox: Bbox | None):
+        self.bbox = bbox if bbox is not None and bbox.valid else None
+        if frame is None:
+            self.image = None
+        else:
+            fmt = (QtGui.QImage.Format.Format_RGB888 if frame.encoding == 'rgb8'
+                   else QtGui.QImage.Format.Format_BGR888)
+            self.image = QtGui.QImage(frame.pixels, frame.width, frame.height,
+                                      frame.width * 3, fmt).copy()
+        self.update()
+
+    def set_mode(self, mode):
+        self.mode = mode
+        self.update()
+
+    def paintEvent(self, event):
+        del event
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform)
+        painter.fillRect(self.rect(), QtGui.QColor('#101c2a'))
+        if self.image is None:
+            painter.setPen(QtGui.QColor('#9bb0c8'))
+            text = ('Remote image streaming is planned for v2' if self.mode == 'remote'
+                    else 'Local camera image unavailable\nSelect Local mode and start the renderer')
+            painter.drawText(self.rect(), QtCore.Qt.AlignmentFlag.AlignCenter,
+                             text)
+            painter.end()
+            return
+        target = self.rect().adjusted(8, 8, -8, -8)
+        fitted = self.image.scaled(target.size(), QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                                   QtCore.Qt.TransformationMode.SmoothTransformation)
+        offset_x = target.x() + (target.width() - fitted.width()) // 2
+        offset_y = target.y() + (target.height() - fitted.height()) // 2
+        painter.drawImage(offset_x, offset_y, fitted)
+        scale_x = fitted.width() / self.image.width()
+        scale_y = fitted.height() / self.image.height()
+        center = QtCore.QPointF(offset_x + fitted.width() / 2, offset_y + fitted.height() / 2)
+        painter.setPen(QtGui.QPen(QtGui.QColor('#70d6ad'), 2))
+        painter.drawLine(center + QtCore.QPointF(-14, 0), center + QtCore.QPointF(14, 0))
+        painter.drawLine(center + QtCore.QPointF(0, -14), center + QtCore.QPointF(0, 14))
+        if self.bbox is not None:
+            painter.setPen(QtGui.QPen(QtGui.QColor('#eab85a'), 3))
+            x, y, width, height = self.bbox.x, self.bbox.y, self.bbox.width, self.bbox.height
+            painter.drawRect(QtCore.QRectF(offset_x + x * scale_x, offset_y + y * scale_y,
+                                           width * scale_x, height * scale_y))
+        painter.end()
+
+
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, presenter):
         super().__init__()
@@ -193,6 +250,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.reload_profile.setToolTip('Reload the mission YAML after stopping the scenario.')
         self.reload_profile.clicked.connect(getattr(self.presenter, 'request_reload', lambda: None))
         header.addWidget(self.reload_profile)
+        header.addWidget(QtWidgets.QLabel('Image mode'))
+        self.image_mode = QtWidgets.QComboBox()
+        self.image_mode.addItems(['Local', 'Remote'])
+        self.image_mode.setCurrentText('Local' if getattr(presenter, 'image_mode', 'local') == 'local' else 'Remote')
+        self.image_mode.currentTextChanged.connect(self._set_image_mode)
+        header.addWidget(self.image_mode)
         header.addWidget(QtWidgets.QLabel(presenter.endpoint))
         outer.addLayout(header)
         self.tabs = QtWidgets.QTabWidget()
@@ -203,31 +266,47 @@ class MainWindow(QtWidgets.QMainWindow):
         outer.addWidget(self.tabs, 1)
         self._build_telemetry()
         self._build_parameters()
+        self.camera_frame.set_mode(self.image_mode.currentText().lower())
         self.setCentralWidget(root)
         presenter.snapshot_changed.connect(self.set_snapshot)
         presenter.status_changed.connect(self.status.setText)
 
     def _build_telemetry(self):
-        layout = QtWidgets.QHBoxLayout(self.telemetry_tab)
+        root = QtWidgets.QVBoxLayout(self.telemetry_tab)
+        upper = QtWidgets.QHBoxLayout()
+        left = QtWidgets.QFrame()
+        left.setObjectName('card')
+        left_layout = QtWidgets.QHBoxLayout(left)
         self.flight_ball = FlightBall()
-        layout.addWidget(self.flight_ball, 2)
+        left_layout.addWidget(self.flight_ball, 1)
+        upper.addWidget(left, 3)
+        right = QtWidgets.QFrame()
+        right.setObjectName('card')
+        right_layout = QtWidgets.QHBoxLayout(right)
+        self.camera_frame = CameraFrame()
+        right_layout.addWidget(self.camera_frame, 5)
         self.altitude = AltitudeWidget()
-        layout.addWidget(self.altitude, 1)
+        right_layout.addWidget(self.altitude, 1)
         self.vertical_speed = VerticalSpeedWidget()
-        layout.addWidget(self.vertical_speed, 1)
-        panel = QtWidgets.QFrame()
-        panel.setObjectName('card')
-        details = QtWidgets.QVBoxLayout(panel)
-        details.addWidget(QtWidgets.QLabel('ATTITUDE'))
+        right_layout.addWidget(self.vertical_speed, 1)
+        upper.addWidget(right, 4)
+        root.addLayout(upper, 1)
+        lower = QtWidgets.QHBoxLayout()
+        attitude_panel = QtWidgets.QFrame()
+        attitude_panel.setObjectName('attitude_summary')
+        attitude_layout = QtWidgets.QVBoxLayout(attitude_panel)
+        attitude_layout.addWidget(QtWidgets.QLabel('ATTITUDE'))
+        attitude_row = QtWidgets.QHBoxLayout()
         self.roll = self._value_label('Roll')
         self.pitch = self._value_label('Pitch')
         self.yaw = self._value_label('Yaw')
         for label in (self.roll, self.pitch, self.yaw):
-            details.addWidget(label)
-        details.addStretch(1)
-        layout.addWidget(panel, 1)
+            attitude_row.addWidget(label, 1)
+        attitude_layout.addLayout(attitude_row)
+        attitude_layout.addStretch(1)
+        lower.addWidget(attitude_panel, 1)
         message_panel = QtWidgets.QFrame()
-        message_panel.setObjectName('card')
+        message_panel.setObjectName('status_panel')
         message_layout = QtWidgets.QVBoxLayout(message_panel)
         message_layout.addWidget(QtWidgets.QLabel('STATUS MESSAGES'))
         self.message_log = QtWidgets.QListWidget()
@@ -244,7 +323,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.message_details.setMinimumHeight(110)
         self.message_details.setStyleSheet('padding:8px; color:#9bb0c8;')
         message_layout.addWidget(self.message_details)
-        layout.addWidget(message_panel, 2)
+        lower.addWidget(message_panel, 3)
+        root.addLayout(lower, 1)
+
+    def _set_image_mode(self, mode):
+        self.camera_frame.set_mode(mode.lower())
+        setter = getattr(self.presenter, 'set_image_mode', None)
+        if setter is not None:
+            setter(mode.lower())
 
     @staticmethod
     def _value_label(name):
@@ -265,6 +351,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.flight_ball.set_attitude(snapshot.attitude)
         self.altitude.set_altitude(snapshot.altitude)
         self.vertical_speed.set_vertical_speed(snapshot.vertical_speed_m_s)
+        self.camera_frame.set_frame(snapshot.image, snapshot.bbox)
         for message in snapshot.messages[self._message_count:]:
             item = QtWidgets.QListWidgetItem(message.text)
             item.setData(QtCore.Qt.ItemDataRole.UserRole, message)

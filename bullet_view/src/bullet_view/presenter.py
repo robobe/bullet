@@ -7,6 +7,7 @@ from pymavlink import mavutil
 
 from .model import TelemetrySnapshot
 from .worker import MavlinkWorker
+from .image_worker import LocalImageWorker
 
 
 STALE_AFTER_S = .75
@@ -53,12 +54,16 @@ class Presenter(QtCore.QObject):
     status_changed = QtCore.Signal(str)
 
     def __init__(self, endpoint, *, control_endpoint='udpout:127.0.0.1:14551',
-                 worker_factory=MavlinkWorker, clock=time.monotonic):
+                 image_endpoint='tcp://127.0.0.1:5556', image_topic='camera/front/image',
+                 image_mode='remote', worker_factory=MavlinkWorker, clock=time.monotonic):
         super().__init__()
         self.endpoint = endpoint
         self.control_endpoint = control_endpoint
         self.worker_factory = worker_factory
         self.clock = clock
+        self.image_endpoint = image_endpoint
+        self.image_topic = image_topic
+        self.image_mode = image_mode
         self.snapshot = TelemetrySnapshot()
         self.vertical_speed = VerticalSpeedEstimator()
         self.thread = QtCore.QThread(self)
@@ -74,9 +79,13 @@ class Presenter(QtCore.QObject):
         self.timer = QtCore.QTimer(self)
         self.timer.setInterval(VIEW_REFRESH_PERIOD_MS)
         self.timer.timeout.connect(self._refresh_freshness)
+        self.image_thread = None
+        self.image_worker = None
 
     def start(self):
         self.thread.start()
+        if self.image_mode == 'local':
+            self._start_image_worker()
         self.timer.start()
 
     def stop(self):
@@ -85,6 +94,45 @@ class Presenter(QtCore.QObject):
         if self.thread.isRunning():
             self.thread.quit()
             self.thread.wait(2000)
+        self._stop_image_worker()
+
+    def set_image_mode(self, mode):
+        if mode not in ('local', 'remote') or mode == self.image_mode:
+            return
+        self.image_mode = mode
+        if mode == 'local':
+            self._start_image_worker()
+        else:
+            self._stop_image_worker()
+            self.snapshot = replace(self.snapshot, image=None)
+            self.snapshot_changed.emit(self.snapshot)
+
+    def _start_image_worker(self):
+        if self.image_thread is not None and self.image_thread.isRunning():
+            return
+        self.image_thread = QtCore.QThread(self)
+        self.image_worker = LocalImageWorker(self.image_endpoint, self.image_topic)
+        self.image_worker.moveToThread(self.image_thread)
+        self.image_thread.started.connect(self.image_worker.run)
+        self.image_worker.frame.connect(self._on_frame)
+        self.image_worker.failed.connect(lambda message: self._set_status('Image: ' + message))
+        self.image_worker.finished.connect(self.image_thread.quit)
+        self.image_thread.finished.connect(self.image_worker.deleteLater)
+        self.image_thread.start()
+
+    def _stop_image_worker(self):
+        if self.image_worker is not None:
+            self.image_worker.request_stop()
+        if self.image_thread is not None and self.image_thread.isRunning():
+            self.image_thread.quit()
+            self.image_thread.wait(2000)
+        self.image_worker = None
+        self.image_thread = None
+
+    @QtCore.Slot(object)
+    def _on_frame(self, frame):
+        self.snapshot = replace(self.snapshot, image=frame)
+        self.snapshot_changed.emit(self.snapshot)
 
     def request_reload(self):
         if self.snapshot.mission_stopped:
@@ -110,6 +158,8 @@ class Presenter(QtCore.QObject):
                 update.value.local_m, update.received_at_s)
         elif update.kind == 'STATUSTEXT':
             values['messages'] = self.snapshot.messages + (update.value,)
+        elif update.kind == 'BBOX':
+            values['bbox'] = update.value
         self.snapshot = replace(self.snapshot, **values)
         if first_message:
             self._set_status('Connected')

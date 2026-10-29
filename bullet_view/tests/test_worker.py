@@ -1,4 +1,4 @@
-from bullet_view.model import StatusText, TelemetryUpdate
+from bullet_view.model import Bbox, StatusText, TelemetryUpdate
 from bullet_view.presenter import Presenter, VerticalSpeedEstimator
 from bullet_view.worker import MavlinkWorker
 import pytest
@@ -35,6 +35,18 @@ def test_worker_maps_status_text_and_index():
     assert updates[0].value.index == 7
     assert updates[0].value.severity == 4
     assert updates[0].value.text == '[07] warning'
+
+
+def test_worker_reassembles_bbox_named_values():
+    worker = MavlinkWorker('test')
+    updates = []
+    worker.update.connect(updates.append)
+    for name, value in (('BBOX_VALID', 1.), ('BBOX_X', 10.), ('BBOX_Y', 20.),
+                        ('BBOX_W', 30.), ('BBOX_H', 40.)):
+        worker._emit_message(Message('NAMED_VALUE_FLOAT', name=name.encode(), value=value), 1.)
+
+    assert updates[-1].kind == 'BBOX'
+    assert updates[-1].value == Bbox(True, 10., 20., 30., 40.)
 
 
 def test_worker_does_not_retry_after_connection_failure():

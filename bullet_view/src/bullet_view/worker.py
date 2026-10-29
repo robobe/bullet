@@ -1,16 +1,18 @@
 """Receive-only MAVLink worker; no GUI or reconnect policy belongs here."""
 from threading import Event
 import time
+from math import isfinite
 
 from PySide6 import QtCore
 from pymavlink import mavutil
 import re
 
-from .model import Attitude, Altitude, Heartbeat, StatusText, TelemetryUpdate
+from .model import Attitude, Altitude, Bbox, Heartbeat, StatusText, TelemetryUpdate
 
 
 RECEIVE_TIMEOUT_S = .2
 STATUS_INDEX_RE = re.compile(r'^\[(\d+)\]\s*(.*)$')
+BBOX_NAMES = {'BBOX_VALID', 'BBOX_X', 'BBOX_Y', 'BBOX_W', 'BBOX_H'}
 
 
 class MavlinkWorker(QtCore.QObject):
@@ -31,6 +33,7 @@ class MavlinkWorker(QtCore.QObject):
         self.connection = None
         self.control_connection = None
         self.reload_requested = Event()
+        self.bbox_values = {}
 
     def request_stop(self):
         self.stop_requested.set()
@@ -55,7 +58,7 @@ class MavlinkWorker(QtCore.QObject):
                     if ack is not None:
                         self.command_result.emit(f'Reload command result: {ack.result}')
                 message = self.connection.recv_match(
-                    type=['HEARTBEAT', 'ATTITUDE', 'ALTITUDE', 'STATUSTEXT'],
+                type=['HEARTBEAT', 'ATTITUDE', 'ALTITUDE', 'STATUSTEXT', 'NAMED_VALUE_FLOAT'],
                     blocking=True,
                     timeout=RECEIVE_TIMEOUT_S,
                 )
@@ -85,6 +88,18 @@ class MavlinkWorker(QtCore.QObject):
             match = STATUS_INDEX_RE.match(raw_text)
             index = int(match.group(1)) if match else 0
             value = StatusText(index, message.severity, raw_text, received_at_s)
+        elif kind == 'NAMED_VALUE_FLOAT':
+            raw_name = message.name.decode('ascii', errors='ignore') if isinstance(message.name, bytes) else message.name
+            name = str(raw_name).rstrip('\0')
+            if name not in BBOX_NAMES:
+                return
+            self.bbox_values[name] = float(message.value)
+            valid = self.bbox_values.get('BBOX_VALID', 0.) > .5
+            coordinates = tuple(self.bbox_values.get(name) for name in ('BBOX_X', 'BBOX_Y', 'BBOX_W', 'BBOX_H'))
+            value = Bbox(valid, *coordinates) if valid and all(
+                item is not None and isfinite(item) for item in coordinates
+            ) else Bbox(False)
+            kind = 'BBOX'
         else:
             return
         self.update.emit(TelemetryUpdate(kind, value, received_at_s))

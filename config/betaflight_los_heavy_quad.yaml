@@ -51,7 +51,7 @@ tuning:
   # Pitch-reference slew limit in degrees/s. Usage: lower for smoother forward response.
   pitch_slew_deg_s: 5
   # Yaw hold proportional gain in 1/s. Usage: raise only until heading correction is prompt.
-  yaw_gain_s_inv: 4.0
+  yaw_gain_s_inv: 2.5
   # Maximum yaw rate in degrees/s. Usage: cap search and hold rotation.
   yaw_rate_limit_deg_s: 114.591559026
   # Maximum yaw-search duration in simulation seconds. Usage: allow a full scan and centering delays.

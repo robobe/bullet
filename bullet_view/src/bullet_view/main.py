@@ -9,6 +9,8 @@ from .view import MainWindow
 
 
 DEFAULT_ENDPOINT = 'udpin:0.0.0.0:14550'
+DEFAULT_IMAGE_ENDPOINT = 'tcp://127.0.0.1:5556'
+DEFAULT_IMAGE_TOPIC = 'camera/front/image'
 
 
 def main(argv=None):
@@ -17,9 +19,15 @@ def main(argv=None):
                         help='pymavlink input connection string')
     parser.add_argument('--mavlink-control-endpoint', default='udpout:127.0.0.1:14551',
                         help='pymavlink control output for profile reload')
+    parser.add_argument('--image-endpoint', default=DEFAULT_IMAGE_ENDPOINT,
+                        help='local ZMQ image descriptor endpoint')
+    parser.add_argument('--image-topic', default=DEFAULT_IMAGE_TOPIC,
+                        help='local SHM image topic')
     args = parser.parse_args(argv)
     application = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
-    presenter = Presenter(args.mavlink_endpoint, control_endpoint=args.mavlink_control_endpoint)
+    presenter = Presenter(args.mavlink_endpoint, control_endpoint=args.mavlink_control_endpoint,
+                          image_endpoint=args.image_endpoint, image_topic=args.image_topic,
+                          image_mode='local')
     window = MainWindow(presenter)
     window.show()
     presenter.start()
