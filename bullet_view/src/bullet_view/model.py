@@ -11,6 +11,13 @@ class Attitude:
 
 
 @dataclass(frozen=True)
+class Heartbeat:
+    base_mode: int
+    system_status: int
+    received_at_s: float
+
+
+@dataclass(frozen=True)
 class Altitude:
     local_m: float
     time_usec: int
@@ -34,6 +41,8 @@ class TelemetrySnapshot:
     error: str | None = None
     vertical_speed_m_s: float | None = None
     messages: tuple[StatusText, ...] = ()
+    heartbeat: Heartbeat | None = None
+    mission_stopped: bool = False
 
 
 @dataclass(frozen=True)

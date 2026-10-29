@@ -65,7 +65,7 @@
         "runOptions": {
           "instanceLimit": 1
         },
-        "detail": "Select backend and drone model; all four combinations have explicit physics configs. Save MCAP files to ~/workspaces/bullet/recordings. Wait for Mission READY, then press Start."
+        "detail": "Select backend and drone model; all four combinations have explicit physics configs. Edit the mission YAML, stop the scenario, use Bullet View's Reload mission profile button, then press Start again. Save MCAP files to ~/workspaces/bullet/recordings."
       },
       {
         "label": "FlightLens: Open",

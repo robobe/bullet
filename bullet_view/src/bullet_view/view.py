@@ -188,6 +188,11 @@ class MainWindow(QtWidgets.QMainWindow):
         header.addWidget(brand)
         self.status = QtWidgets.QLabel('Starting MAVLink input…')
         header.addWidget(self.status, 1)
+        self.reload_profile = QtWidgets.QPushButton('Reload mission profile')
+        self.reload_profile.setEnabled(False)
+        self.reload_profile.setToolTip('Reload the mission YAML after stopping the scenario.')
+        self.reload_profile.clicked.connect(getattr(self.presenter, 'request_reload', lambda: None))
+        header.addWidget(self.reload_profile)
         header.addWidget(QtWidgets.QLabel(presenter.endpoint))
         outer.addLayout(header)
         self.tabs = QtWidgets.QTabWidget()
@@ -256,6 +261,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @QtCore.Slot(object)
     def set_snapshot(self, snapshot: TelemetrySnapshot):
+        self.reload_profile.setEnabled(snapshot.mission_stopped)
         self.flight_ball.set_attitude(snapshot.attitude)
         self.altitude.set_altitude(snapshot.altitude)
         self.vertical_speed.set_vertical_speed(snapshot.vertical_speed_m_s)

@@ -3,6 +3,7 @@ from dataclasses import replace
 import time
 
 from PySide6 import QtCore
+from pymavlink import mavutil
 
 from .model import TelemetrySnapshot
 from .worker import MavlinkWorker
@@ -51,20 +52,23 @@ class Presenter(QtCore.QObject):
     snapshot_changed = QtCore.Signal(object)
     status_changed = QtCore.Signal(str)
 
-    def __init__(self, endpoint, *, worker_factory=MavlinkWorker, clock=time.monotonic):
+    def __init__(self, endpoint, *, control_endpoint='udpout:127.0.0.1:14551',
+                 worker_factory=MavlinkWorker, clock=time.monotonic):
         super().__init__()
         self.endpoint = endpoint
+        self.control_endpoint = control_endpoint
         self.worker_factory = worker_factory
         self.clock = clock
         self.snapshot = TelemetrySnapshot()
         self.vertical_speed = VerticalSpeedEstimator()
         self.thread = QtCore.QThread(self)
-        self.worker = worker_factory(endpoint)
+        self.worker = worker_factory(endpoint, control_endpoint=control_endpoint)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.update.connect(self._on_update)
         self.worker.connected.connect(lambda: self._set_status('Listening for MAVLink telemetry'))
         self.worker.failed.connect(self._on_failure)
+        self.worker.command_result.connect(self._set_status)
         self.worker.finished.connect(self.thread.quit)
         self.thread.finished.connect(self.worker.deleteLater)
         self.timer = QtCore.QTimer(self)
@@ -82,6 +86,12 @@ class Presenter(QtCore.QObject):
             self.thread.quit()
             self.thread.wait(2000)
 
+    def request_reload(self):
+        if self.snapshot.mission_stopped:
+            self.worker.request_reload()
+        else:
+            self._set_status('Profile reload requires stopped mission')
+
     @QtCore.Slot(object)
     def _on_update(self, update):
         first_message = not self.snapshot.connected
@@ -89,6 +99,9 @@ class Presenter(QtCore.QObject):
                       error=None)
         if update.kind == 'HEARTBEAT':
             values['heartbeat_at_s'] = update.received_at_s
+            values['heartbeat'] = update.value
+            values['mission_stopped'] = (update.value is not None
+                                          and update.value.system_status != mavutil.mavlink.MAV_STATE_ACTIVE)
         elif update.kind == 'ATTITUDE':
             values['attitude'] = update.value
         elif update.kind == 'ALTITUDE':

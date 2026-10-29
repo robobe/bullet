@@ -56,3 +56,15 @@ def test_view_stops_auto_follow_after_completion(application):
         assert window.message_log.count() == 3
     finally:
         window.close()
+
+
+def test_view_enables_profile_reload_only_when_stopped(application):
+    presenter = FakePresenter()
+    window = MainWindow(presenter)
+    try:
+        window.set_snapshot(TelemetrySnapshot(mission_stopped=False))
+        assert not window.reload_profile.isEnabled()
+        window.set_snapshot(TelemetrySnapshot(mission_stopped=True))
+        assert window.reload_profile.isEnabled()
+    finally:
+        window.close()

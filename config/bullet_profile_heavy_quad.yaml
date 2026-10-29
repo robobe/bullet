@@ -39,7 +39,7 @@ tuning:
 # LATERAL ATTITUDE AND YAW
 # ********************
   # Forward approach pitch in degrees. Usage: increase carefully for faster closing.
-  approach_pitch_deg: 12
+  approach_pitch_deg: 8
   # Maximum roll command in degrees. Usage: cap lateral correction authority.
   roll_limit_deg: 30
   # Maximum pitch command in degrees. Usage: cap forward command authority.
@@ -47,7 +47,7 @@ tuning:
   # Maximum combined roll/pitch tilt in degrees. Usage: keep within vehicle safety limits.
   combined_tilt_limit_deg: 40
   # Roll-reference slew limit in degrees/s. Usage: lower for smoother lateral response.
-  roll_slew_deg_s: 30
+  roll_slew_deg_s: 60
   # Pitch-reference slew limit in degrees/s. Usage: lower for smoother forward response.
   pitch_slew_deg_s: 5
   # Yaw hold proportional gain in 1/s. Usage: raise only until heading correction is prompt.
@@ -89,9 +89,9 @@ tuning:
   # Vertical integral-memory limit in m/s. Usage: cap accumulated descent bias.
   vertical_memory_limit_m_s: 3.0
   # Azimuth proportional gain. Usage: increase lateral response to target offset.
-  azimuth_kp: 1.5
+  azimuth_kp: 2.2
   # Azimuth rate gain in s. Usage: increase damping of lateral motion.
-  azimuth_kd_s: 3.0
+  azimuth_kd_s: 2.0
   # Azimuth integral gain in 1/s. Usage: use sparingly to remove steady offset.
   azimuth_ki_s_inv: 0.05
   # Lateral integral-memory limit in degrees. Usage: cap accumulated roll bias.
