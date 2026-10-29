@@ -39,13 +39,13 @@ tuning:
 # LATERAL ATTITUDE AND YAW
 # ********************
   # Forward approach pitch in degrees. Usage: increase carefully for faster closing.
-  approach_pitch_deg: 10
+  approach_pitch_deg: 20
   # Maximum roll command in degrees. Usage: cap lateral correction authority.
-  roll_limit_deg: 20
+  roll_limit_deg: 30
   # Maximum pitch command in degrees. Usage: cap forward command authority.
-  pitch_limit_deg: 30
+  pitch_limit_deg: 40
   # Maximum combined roll/pitch tilt in degrees. Usage: keep within vehicle safety limits.
-  combined_tilt_limit_deg: 30
+  combined_tilt_limit_deg: 40
   # Roll-reference slew limit in degrees/s. Usage: lower for smoother lateral response.
   roll_slew_deg_s: 30
   # Pitch-reference slew limit in degrees/s. Usage: lower for smoother forward response.
@@ -70,6 +70,14 @@ tuning:
   vertical_slew_m_s2: 1.0
   # Vertical braking slew in m/s². Usage: raise to arrest excessive downward velocity faster.
   vertical_brake_slew_m_s2: 8.0
+  # Takeoff altitude proportional gain in 1/s. Usage: aggressive heavy-quad climb response.
+  takeoff_kp_s_inv: 1.5
+  # Takeoff altitude integral gain in 1/s². Usage: remove persistent climb error during takeoff.
+  takeoff_ki_s2_inv: 0.25
+  # Takeoff vertical-speed command ceiling in m/s. Usage: cap the dedicated takeoff controller.
+  takeoff_max_climb_m_s: 4.0
+  # Takeoff vertical-reference slew in m/s². Usage: reach the climb command quickly but smoothly.
+  takeoff_vertical_slew_m_s2: 8.0
   # Altitude-hold gain in 1/s. Usage: raise for firmer height hold.
   hold_altitude_gain_s_inv: 1.0
   # LOS elevation proportional gain in (m/s)/degree. Usage: increase descent response to vertical error.
