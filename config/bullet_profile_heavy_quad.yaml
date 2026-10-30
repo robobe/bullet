@@ -27,6 +27,10 @@ vehicle:
   max_thrust_n: 122.625
   # Gravity magnitude in m/s². Usage: match the operating environment.
   gravity_m_s2: 9.81
+# Internal control does not open an MSP connection; this section is explicit for profile clarity.
+control:
+  # Flight backend selected by the mission runtime; internal uses simulated feedback.
+  backend: internal
 # ********************
 # MISSION TARGET
 # ********************

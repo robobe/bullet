@@ -27,6 +27,19 @@ vehicle:
   max_thrust_n: 122.625
   # Gravity magnitude in m/s². Usage: match the operating environment.
   gravity_m_s2: 9.81
+# Betaflight control connection, separate from MAVLink telemetry.
+control:
+  # Flight backend selected by the mission runtime; use betaflight for MSP control.
+  backend: betaflight
+  # Deployment label used in diagnostics; accepted values are sitl or hardware.
+  target: sitl
+  connection:
+    # MSP transport; accepted values are tcp or serial.
+    transport: tcp
+    # SITL TCP host name or address.
+    host: 127.0.0.1
+    # SITL MSP TCP port; valid range is 1..65535.
+    port: 5761
 # ********************
 # MISSION TARGET
 # ********************
