@@ -10,6 +10,7 @@ members = [
     "bullet-perception",
     "bullet-render",
     "bullet-view",
+    "bullet-visual",
     "flight-lens",
     "los-tracking",
     "mcap-bagger",
@@ -202,6 +203,43 @@ requires-dist = [
     { name = "bullet-msgs", editable = "bullet_msgs" },
     { name = "pymavlink", specifier = ">=2.4,<3" },
     { name = "pyside6-essentials", specifier = ">=6.8,<7" },
+    { name = "pyzmq", specifier = ">=27,<28" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9,<10" }]
+
+[[package]]
+name = "bullet-visual"
+version = "0.1.0"
+source = { editable = "bullet_visual" }
+dependencies = [
+    { name = "bullet-msgs" },
+    { name = "bullet-perception" },
+    { name = "click" },
+    { name = "jsonschema" },
+    { name = "loguru" },
+    { name = "numpy" },
+    { name = "opencv-python" },
+    { name = "pyyaml" },
+    { name = "pyzmq" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "bullet-msgs", editable = "bullet_msgs" },
+    { name = "bullet-perception", editable = "bullet_perception" },
+    { name = "click", specifier = ">=8.5,<9" },
+    { name = "jsonschema", specifier = ">=4,<5" },
+    { name = "loguru", specifier = ">=0.7,<1" },
+    { name = "numpy", specifier = ">=2,<3" },
+    { name = "opencv-python", specifier = ">=4.10,<5" },
+    { name = "pyyaml", specifier = ">=6,<7" },
     { name = "pyzmq", specifier = ">=27,<28" },
 ]
 

@@ -1,0 +1,13 @@
+# Image source and output settings for the local renderer camera.
+source:
+  # Select exactly one source adapter: zmq_shm, usb, or mipi.
+  type: zmq_shm
+  # Descriptor PUB endpoint exposed by the renderer.
+  endpoint: tcp://127.0.0.1:5556
+  # Exact image topic to subscribe to.
+  topic: camera/front/image
+output:
+  # ZMQ PUB endpoint consumed by bullet_app.
+  endpoint: tcp://127.0.0.1:5560
+  # Image topic written into bbox packets.
+  image_topic: camera/front/image

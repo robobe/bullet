@@ -1,0 +1,11 @@
+# USB camera source example.
+source:
+  # Select the USB OpenCV adapter.
+  type: usb
+  # Camera index or device path accepted by cv2.VideoCapture.
+  device: 0
+output:
+  # ZMQ PUB endpoint consumed by bullet_app.
+  endpoint: tcp://127.0.0.1:5560
+  # Image topic written into bbox packets.
+  image_topic: camera/front/image

@@ -13,3 +13,7 @@
 /recordings/
 
 /msp_link/
+
+# Python test and bytecode artifacts.
+__pycache__/
+.pytest_cache/

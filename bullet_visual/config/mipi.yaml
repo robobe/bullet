@@ -1,0 +1,11 @@
+# MIPI camera source example using an OpenCV GStreamer pipeline.
+source:
+  # Select the MIPI adapter.
+  type: mipi
+  # Complete pipeline ending in appsink with BGR frames.
+  pipeline: "libcamerasrc ! video/x-raw,width=640,height=480,framerate=30/1 ! videoconvert ! video/x-raw,format=BGR ! appsink drop=true max-buffers=1"
+output:
+  # ZMQ PUB endpoint consumed by bullet_app.
+  endpoint: tcp://127.0.0.1:5560
+  # Image topic written into bbox packets.
+  image_topic: camera/front/image
