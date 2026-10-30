@@ -31,8 +31,8 @@ Move image capture and perception into `bullet_visual`, support ZMQ/SHM, USB, an
 
 ## Status
 
-Pending.
+Complete.
 
 ## Implementation commit
 
-Pending.
+`91d45b9`
