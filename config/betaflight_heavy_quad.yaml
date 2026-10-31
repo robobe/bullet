@@ -17,6 +17,25 @@ drone:
   mass_kg: 5.0
   # Initial world position in metres.
   initial_position_m: [0.0, 0.0, 1.0]
+terrain:
+  # Shared float32 heightmap path, relative to this configuration file.
+  heightmap_path: ../terrain/terrain_heightmap.f32
+  # Terrain width and depth represented by the heightmap in metres.
+  world_size_m: 500.0
+  # Heightmap samples along X and Z, including both edges.
+  samples_x: 121
+  samples_z: 121
+  # World-frame terrain origin in metres.
+  origin_m: [-250.0, -250.0]
+sensors:
+  # Downward AGL sensor settings used by physics telemetry.
+  rangefinder:
+    # Enable body-down terrain distance measurement.
+    enabled: true
+    # Maximum measurable distance in metres; no return is invalid.
+    max_range_m: 50.0
+    # Sensor mount offset in body coordinates, in metres.
+    mount_position_body_m: [0.0, 0.0, 0.0]
 control:
   # Use the Betaflight SITL backend.
   backend: betaflight

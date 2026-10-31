@@ -7,7 +7,7 @@ from PySide6 import QtCore
 from pymavlink import mavutil
 import re
 
-from .model import Attitude, Altitude, Bbox, Heartbeat, StatusText, TelemetryUpdate
+from .model import Attitude, Altitude, Bbox, Heartbeat, Rangefinder, StatusText, TelemetryUpdate
 
 
 RECEIVE_TIMEOUT_S = .2
@@ -58,7 +58,7 @@ class MavlinkWorker(QtCore.QObject):
                     if ack is not None:
                         self.command_result.emit(f'Reload command result: {ack.result}')
                 message = self.connection.recv_match(
-                type=['HEARTBEAT', 'ATTITUDE', 'ALTITUDE', 'STATUSTEXT', 'NAMED_VALUE_FLOAT'],
+                type=['HEARTBEAT', 'ATTITUDE', 'ALTITUDE', 'DISTANCE_SENSOR', 'STATUSTEXT', 'NAMED_VALUE_FLOAT'],
                     blocking=True,
                     timeout=RECEIVE_TIMEOUT_S,
                 )
@@ -83,6 +83,12 @@ class MavlinkWorker(QtCore.QObject):
             value = Attitude(message.roll, message.pitch, message.yaw, message.time_boot_ms)
         elif kind == 'ALTITUDE':
             value = Altitude(message.altitude_local, message.time_usec)
+        elif kind == 'DISTANCE_SENSOR':
+            # MAVLink names this wire field ``current_distance``; the units are cm.
+            distance_cm = getattr(message, 'current_distance',
+                                  getattr(message, 'current_distance_cm', 65535))
+            value = Rangefinder(None if distance_cm == 65535 else float(distance_cm),
+                                message.time_boot_ms, distance_cm != 65535)
         elif kind == 'STATUSTEXT':
             raw_text = message.text.decode('utf-8', errors='replace') if isinstance(message.text, bytes) else message.text
             match = STATUS_INDEX_RE.match(raw_text)

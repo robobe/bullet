@@ -20,10 +20,21 @@ def test_worker_maps_standard_mavlink_messages_to_updates():
     worker._emit_message(Message('ATTITUDE', roll=.1, pitch=.2, yaw=.3, time_boot_ms=4), 1.)
     worker._emit_message(Message('ALTITUDE', altitude_local=5., time_usec=6), 2.)
     worker._emit_message(Message('HEARTBEAT'), 3.)
+    worker._emit_message(Message('DISTANCE_SENSOR', current_distance=275, time_boot_ms=7), 4.)
 
-    assert [update.kind for update in updates] == ['ATTITUDE', 'ALTITUDE', 'HEARTBEAT']
+    assert [update.kind for update in updates] == ['ATTITUDE', 'ALTITUDE', 'HEARTBEAT', 'DISTANCE_SENSOR']
     assert updates[0].value.roll_rad == .1
     assert updates[1].value.local_m == 5.
+    assert updates[3].value.distance_cm == 275.
+
+
+def test_worker_marks_distance_sensor_sentinel_invalid():
+    worker = MavlinkWorker('test')
+    updates = []
+    worker.update.connect(updates.append)
+    worker._emit_message(Message('DISTANCE_SENSOR', current_distance=65535, time_boot_ms=7), 1.)
+    assert not updates[0].value.valid
+    assert updates[0].value.distance_cm is None
 
 
 def test_worker_maps_status_text_and_index():

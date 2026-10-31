@@ -24,6 +24,13 @@ class Altitude:
 
 
 @dataclass(frozen=True)
+class Rangefinder:
+    distance_cm: float | None
+    time_boot_ms: int
+    valid: bool
+
+
+@dataclass(frozen=True)
 class StatusText:
     index: int
     severity: int
@@ -57,6 +64,7 @@ class TelemetrySnapshot:
     last_message_at_s: float | None = None
     attitude: Attitude | None = None
     altitude: Altitude | None = None
+    rangefinder: Rangefinder | None = None
     error: str | None = None
     vertical_speed_m_s: float | None = None
     messages: tuple[StatusText, ...] = ()

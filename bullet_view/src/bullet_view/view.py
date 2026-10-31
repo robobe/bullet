@@ -13,6 +13,7 @@ WINDOW_HEIGHT = 720
 PITCH_PIXELS_PER_RAD = 85.
 MAX_ALTITUDE_M = 100.
 MAX_VERTICAL_SPEED_M_S = 5.
+MAX_RANGEFINDER_M = 50.
 PITCH_MARK_DEGREES = (-30, -20, -10, 10, 20, 30)
 ROLL_MARK_DEGREES = (-60, -45, -30, -20, -10, 10, 20, 30, 45, 60)
 
@@ -162,6 +163,41 @@ class VerticalSpeedWidget(QtWidgets.QWidget):
         painter.end()
 
 
+class RangefinderWidget(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.rangefinder = None
+        self.setMinimumSize(150, 360)
+        self.setAccessibleName('AGL rangefinder gauge')
+
+    def set_rangefinder(self, rangefinder):
+        self.rangefinder = rangefinder
+        self.update()
+
+    def paintEvent(self, event):
+        del event
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setPen(QtGui.QPen(QtGui.QColor('#30485f'), 1))
+        painter.setBrush(QtGui.QColor('#101c2a'))
+        painter.drawRoundedRect(self.rect().adjusted(8, 8, -8, -8), 8, 8)
+        painter.setPen(QtGui.QColor('#d9e6f4'))
+        painter.setFont(QtGui.QFont('sans-serif', 15, QtGui.QFont.Weight.Bold))
+        valid = self.rangefinder is not None and self.rangefinder.valid
+        text = 'Unavailable' if not valid else f'{self.rangefinder.distance_cm / 100:.2f} m AGL'
+        painter.drawText(self.rect().adjusted(12, 24, -12, -20), QtCore.Qt.AlignmentFlag.AlignTop | QtCore.Qt.AlignmentFlag.AlignHCenter, text)
+        top, bottom = 86, self.height() - 28
+        painter.setPen(QtCore.Qt.PenStyle.NoPen)
+        painter.setBrush(QtGui.QColor('#203950'))
+        painter.drawRoundedRect(self.width() / 2 - 18, top, 36, bottom - top, 8, 8)
+        if valid:
+            fraction = max(0., min(1., self.rangefinder.distance_cm / 100. / MAX_RANGEFINDER_M))
+            painter.setBrush(QtGui.QColor('#70d6ad'))
+            height = (bottom - top) * fraction
+            painter.drawRoundedRect(self.width() / 2 - 18, bottom - height, 36, height, 8, 8)
+        painter.end()
+
+
 class CameraFrame(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -289,6 +325,8 @@ class MainWindow(QtWidgets.QMainWindow):
         right_layout.addWidget(self.altitude, 1)
         self.vertical_speed = VerticalSpeedWidget()
         right_layout.addWidget(self.vertical_speed, 1)
+        self.rangefinder = RangefinderWidget()
+        right_layout.addWidget(self.rangefinder, 1)
         upper.addWidget(right, 4)
         root.addLayout(upper, 1)
         lower = QtWidgets.QHBoxLayout()
@@ -351,6 +389,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.flight_ball.set_attitude(snapshot.attitude)
         self.altitude.set_altitude(snapshot.altitude)
         self.vertical_speed.set_vertical_speed(snapshot.vertical_speed_m_s)
+        self.rangefinder.set_rangefinder(snapshot.rangefinder)
         self.camera_frame.set_frame(snapshot.image, snapshot.bbox)
         for message in snapshot.messages[self._message_count:]:
             item = QtWidgets.QListWidgetItem(message.text)

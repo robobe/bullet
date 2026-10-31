@@ -156,6 +156,8 @@ class Presenter(QtCore.QObject):
             values['altitude'] = update.value
             values['vertical_speed_m_s'] = self.vertical_speed.update(
                 update.value.local_m, update.received_at_s)
+        elif update.kind == 'DISTANCE_SENSOR':
+            values['rangefinder'] = update.value
         elif update.kind == 'STATUSTEXT':
             values['messages'] = self.snapshot.messages + (update.value,)
         elif update.kind == 'BBOX':
@@ -168,7 +170,7 @@ class Presenter(QtCore.QObject):
     @QtCore.Slot(str)
     def _on_failure(self, message):
         self.vertical_speed.reset()
-        self.snapshot = replace(self.snapshot, connected=False, error=message)
+        self.snapshot = replace(self.snapshot, connected=False, error=message, rangefinder=None)
         self._set_status('Disconnected: ' + message)
         self.snapshot_changed.emit(self.snapshot)
 
@@ -178,7 +180,7 @@ class Presenter(QtCore.QObject):
         age = self.clock() - self.snapshot.last_message_at_s
         if age > STALE_AFTER_S and self.snapshot.connected:
             self.vertical_speed.reset()
-            self.snapshot = replace(self.snapshot, connected=False, vertical_speed_m_s=None)
+            self.snapshot = replace(self.snapshot, connected=False, vertical_speed_m_s=None, rangefinder=None)
             self._set_status('Telemetry stale')
             self.snapshot_changed.emit(self.snapshot)
 
