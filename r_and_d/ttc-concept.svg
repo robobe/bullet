@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
+  <rect width="900" height="360" fill="#101827"/>
+  <text x="36" y="44" fill="#f8fafc" font-family="sans-serif" font-size="26" font-weight="700">Optical TTC from target growth</text>
+  <text x="36" y="76" fill="#b8c4d6" font-family="sans-serif" font-size="16">As range decreases, the target occupies more pixels in the camera.</text>
+  <g stroke="#d5deeb" stroke-width="3" fill="none">
+    <path d="M120 250 L205 205 L205 285 Z"/>
+    <path d="M205 245 L360 180"/>
+    <path d="M205 245 L360 310"/>
+    <path d="M360 180 L360 310"/>
+    <path d="M640 245 L760 245"/>
+    <path d="M748 235 L760 245 L748 255"/>
+  </g>
+  <rect x="382" y="205" width="58" height="80" fill="none" stroke="#70d6ad" stroke-width="4"/>
+  <rect x="545" y="170" width="118" height="150" fill="none" stroke="#f58518" stroke-width="4"/>
+  <circle cx="410" cy="245" r="9" fill="#70d6ad"/>
+  <circle cx="604" cy="245" r="18" fill="#f58518"/>
+  <text x="70" y="320" fill="#b8c4d6" font-family="sans-serif" font-size="17">camera</text>
+  <text x="368" y="195" fill="#70d6ad" font-family="sans-serif" font-size="16">small bbox</text>
+  <text x="535" y="155" fill="#f58518" font-family="sans-serif" font-size="16">large bbox</text>
+  <text x="420" y="130" fill="#f8fafc" font-family="sans-serif" font-size="19">range decreases</text>
+  <text x="675" y="232" fill="#f8fafc" font-family="sans-serif" font-size="20">TTC = range / closing speed</text>
+  <text x="675" y="270" fill="#b8c4d6" font-family="sans-serif" font-size="16">fit reciprocal apparent size over time</text>
+</svg>

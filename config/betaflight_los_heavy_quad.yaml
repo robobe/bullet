@@ -53,8 +53,8 @@ tuning:
 # ********************
   # Forward approach pitch in degrees. Usage: increase carefully for faster closing.
   approach_pitch_deg: 8
-  # Maximum roll command in degrees. Usage: cap lateral correction authority.
-  roll_limit_deg: 20
+  # Maximum roll command in degrees. Usage: cap lateral correction authority for heavy-quad tracking.
+  roll_limit_deg: 30
   # Maximum pitch command in degrees. Usage: cap forward command authority.
   pitch_limit_deg: 30
   # Maximum combined roll/pitch tilt in degrees. Usage: keep within vehicle safety limits.
