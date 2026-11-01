@@ -17,5 +17,5 @@ including completion, using focused tests and the offscreen bullet_view suite.
 
 ## Status
 
-Pending implementation commit. No protocol or publisher changes. Latest-frame
+Implemented in `38cbb34`; all 18 viewer tests passed offscreen. No protocol or publisher changes. Latest-frame
 context may lag status events and is unavailable in telemetry-only mode.
