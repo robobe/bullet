@@ -140,6 +140,10 @@ class Presenter(QtCore.QObject):
         else:
             self._set_status('Profile reload requires stopped mission')
 
+    def clear_messages(self):
+        self.snapshot = replace(self.snapshot, messages=())
+        self.snapshot_changed.emit(self.snapshot)
+
     @QtCore.Slot(object)
     def _on_update(self, update):
         first_message = not self.snapshot.connected
@@ -159,7 +163,11 @@ class Presenter(QtCore.QObject):
         elif update.kind == 'DISTANCE_SENSOR':
             values['rangefinder'] = update.value
         elif update.kind == 'STATUSTEXT':
-            values['messages'] = self.snapshot.messages + (update.value,)
+            frame = self.snapshot.image
+            message = replace(update.value,
+                              simulation_time_s=None if frame is None else frame.simulation_time_s,
+                              frame_id=None if frame is None else frame.sequence)
+            values['messages'] = self.snapshot.messages + (message,)
         elif update.kind == 'BBOX':
             values['bbox'] = update.value
         self.snapshot = replace(self.snapshot, **values)

@@ -56,7 +56,8 @@ class LocalImageWorker(QtCore.QObject):
                     for offset in range(0, metadata['step'] * metadata['height'], metadata['step'])
                 )
                 self.frame.emit(ImageFrame(metadata['width'], metadata['height'], metadata['encoding'],
-                                           packed, metadata['sequence'], metadata['capture_ns']))
+                                           packed, metadata['sequence'], metadata['capture_ns'],
+                                           metadata.get('source', {}).get('simulation_time_s')))
         except Exception as error:
             if not self.stop_requested.is_set():
                 self.failed.emit(str(error))

@@ -36,6 +36,8 @@ class StatusText:
     severity: int
     text: str
     received_at_s: float
+    simulation_time_s: float | None = None
+    frame_id: int | None = None
 
 
 @dataclass(frozen=True)
@@ -55,6 +57,7 @@ class ImageFrame:
     pixels: bytes
     sequence: int
     capture_ns: int
+    simulation_time_s: float | None = None
 
 
 @dataclass(frozen=True)

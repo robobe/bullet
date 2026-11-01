@@ -4,8 +4,13 @@ Bullet View is a read-only MAVLink telemetry and local camera window for Bullet
 flight runs.
 
 Mission `STATUSTEXT` messages are shown in the Telemetry tab with their MAVLink
-severity color. The log keeps the full session history, follows the newest five
-lines during the mission, and becomes manually scrollable after completion.
+severity color and a `[seconds / frame_id]` prefix. Seconds (three decimal places)
+and frame ID come from the latest received video's simulation time and sequence
+when the message arrives; unavailable values appear as `—`. This frame context
+may lag the status event and is unavailable in telemetry-only Remote mode.
+Use **Clear log** to discard the viewer's history and **Auto-scroll** to follow
+new messages. Auto-scroll starts checked and remains under user control,
+including after mission completion.
 Click a message to inspect its severity, index, received text, and description.
 When the vehicle is stopped, use **Reload mission profile** to ask the app to
 reread its mission YAML before the next scenario start.

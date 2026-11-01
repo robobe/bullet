@@ -1,9 +1,10 @@
 """FlightLens-themed PySide6 view for Bullet telemetry."""
 from math import degrees, radians, sin, cos
+import re
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from bullet_msgs.status_messages import (MAV_SEVERITY_ERROR, MAV_SEVERITY_INFO, MAV_SEVERITY_WARNING,
-                                         STATUS_MESSAGE_BY_INDEX, STATUS_MESSAGE_BY_KEY)
+                                         STATUS_MESSAGE_BY_INDEX)
 
 from .model import Bbox, ImageFrame, TelemetrySnapshot
 
@@ -260,7 +261,6 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.presenter = presenter
         self._message_count = 0
-        self._auto_follow_messages = True
         self.setWindowTitle('Bullet View · MAVLink Telemetry')
         self.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.setMinimumSize(820, 560)
@@ -346,7 +346,16 @@ class MainWindow(QtWidgets.QMainWindow):
         message_panel = QtWidgets.QFrame()
         message_panel.setObjectName('status_panel')
         message_layout = QtWidgets.QVBoxLayout(message_panel)
-        message_layout.addWidget(QtWidgets.QLabel('STATUS MESSAGES'))
+        message_header = QtWidgets.QHBoxLayout()
+        message_header.addWidget(QtWidgets.QLabel('STATUS MESSAGES'), 1)
+        self.auto_scroll = QtWidgets.QCheckBox('Auto-scroll')
+        self.auto_scroll.setChecked(True)
+        self.auto_scroll.toggled.connect(self._set_auto_scroll)
+        message_header.addWidget(self.auto_scroll)
+        self.clear_log = QtWidgets.QPushButton('Clear log')
+        self.clear_log.clicked.connect(self.presenter.clear_messages)
+        message_header.addWidget(self.clear_log)
+        message_layout.addLayout(message_header)
         self.message_log = QtWidgets.QListWidget()
         self.message_log.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
         self.message_log.setUniformItemSizes(True)
@@ -391,15 +400,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.vertical_speed.set_vertical_speed(snapshot.vertical_speed_m_s)
         self.rangefinder.set_rangefinder(snapshot.rangefinder)
         self.camera_frame.set_frame(snapshot.image, snapshot.bbox)
+        if len(snapshot.messages) < self._message_count:
+            self.message_log.clear()
+            self.message_details.setText('Select a message to inspect its description.')
+            self._message_count = 0
+        has_new_messages = len(snapshot.messages) > self._message_count
         for message in snapshot.messages[self._message_count:]:
-            item = QtWidgets.QListWidgetItem(message.text)
+            time_text = '—' if message.simulation_time_s is None else f'{message.simulation_time_s:.3f}'
+            frame_text = '—' if message.frame_id is None else str(message.frame_id)
+            text = re.sub(r'^\[\d+\]\s*', '', message.text)
+            item = QtWidgets.QListWidgetItem(f'[{time_text} / {frame_text}] {text}')
             item.setData(QtCore.Qt.ItemDataRole.UserRole, message)
             item.setForeground(QtGui.QColor(SEVERITY_COLORS.get(message.severity, '#d9e6f4')))
             self.message_log.addItem(item)
-            if self._is_completion(message):
-                self._auto_follow_messages = False
         self._message_count = len(snapshot.messages)
-        if self._auto_follow_messages or snapshot.messages and self._is_completion(snapshot.messages[-1]):
+        if self.auto_scroll.isChecked() and has_new_messages:
             self.message_log.scrollToBottom()
         if snapshot.attitude is None:
             for label, name in ((self.roll, 'Roll'), (self.pitch, 'Pitch'), (self.yaw, 'Yaw')):
@@ -411,9 +426,9 @@ class MainWindow(QtWidgets.QMainWindow):
             for label, name, value in values:
                 label.setText(f'{name}\n{degrees(value):+.1f}°')
 
-    @staticmethod
-    def _is_completion(message):
-        return message.index == STATUS_MESSAGE_BY_KEY['completed'].index or message.text.startswith('COMPLETED:')
+    def _set_auto_scroll(self, enabled):
+        if enabled:
+            self.message_log.scrollToBottom()
 
     def _show_message_details(self, item):
         message = item.data(QtCore.Qt.ItemDataRole.UserRole)

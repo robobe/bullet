@@ -1,4 +1,4 @@
-from bullet_view.model import Bbox, StatusText, TelemetryUpdate
+from bullet_view.model import Bbox, ImageFrame, StatusText, TelemetryUpdate
 from bullet_view.presenter import Presenter, VerticalSpeedEstimator
 from bullet_view.worker import MavlinkWorker
 import pytest
@@ -93,6 +93,29 @@ def test_presenter_retains_status_messages_in_snapshot():
     presenter = Presenter('test')
     presenter._on_update(TelemetryUpdate('STATUSTEXT', StatusText(2, 4, '[02] warning', 1.), 1.))
     assert presenter.snapshot.messages[0].severity == 4
+
+
+def test_presenter_captures_frame_context_and_clears_history():
+    presenter = Presenter('test')
+    update = TelemetryUpdate('STATUSTEXT', StatusText(1, 6, '[01] ready', 1.), 1.)
+    presenter._on_update(update)
+    assert presenter.snapshot.messages[0].frame_id is None
+    assert presenter.snapshot.messages[0].simulation_time_s is None
+    presenter._on_frame(ImageFrame(2, 2, 'rgb8', bytes(12), 1, 100, 0.))
+    presenter._on_update(update)
+    presenter._on_frame(ImageFrame(2, 2, 'rgb8', bytes(12), 2, 200, 1.5))
+    assert presenter.snapshot.messages[-1].simulation_time_s == 0.
+    assert presenter.snapshot.messages[-1].frame_id == 1
+    snapshots = []
+    presenter.snapshot_changed.connect(snapshots.append)
+    presenter.clear_messages()
+    assert snapshots[-1].messages == ()
+    assert presenter.snapshot.image.sequence == 2
+    presenter.clear_messages()
+    presenter._on_update(update)
+    assert len(presenter.snapshot.messages) == 1
+    assert presenter.snapshot.messages[0].frame_id == 2
+    assert presenter.snapshot.messages[0].simulation_time_s == 1.5
 
 
 def test_vertical_speed_estimator_filters_altitude_rate_and_resets_after_gap():
