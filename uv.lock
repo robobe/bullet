@@ -87,6 +87,9 @@ render = [
     { name = "bullet-msgs" },
     { name = "pyzmq" },
 ]
+sitl = [
+    { name = "msp-link" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -99,11 +102,12 @@ requires-dist = [
     { name = "bullet-msgs", marker = "extra == 'render'", editable = "bullet_msgs" },
     { name = "click", specifier = ">=8.5.0" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "msp-link", marker = "extra == 'sitl'", editable = "msp_link" },
     { name = "pybullet", specifier = ">=3.2.7" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "pyzmq", marker = "extra == 'render'", specifier = ">=27,<28" },
 ]
-provides-extras = ["render"]
+provides-extras = ["render", "sitl"]
 
 [package.metadata.requires-dev]
 dev = [
