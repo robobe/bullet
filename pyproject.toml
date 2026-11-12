@@ -1,5 +1,7 @@
 [tool.uv.workspace]
 members = [
+    "bullet_drone/libs/bullet_simulation_protocol",
+    "bullet_drone/libs/bullet_image_transport",
     "bullet_app",
     "bullet_drone",
     "bullet_msgs",
